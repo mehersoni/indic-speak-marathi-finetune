@@ -10,7 +10,10 @@ from torch.utils.data import Dataset
 
 from src.tokenize_format import build_training_sequence
 
-# Map dataset gender to official Indic-Speak Marathi voice names
+# Map dataset gender to official Indic-Speak Marathi voice names.
+# Indic-Speak requires a closed set of known voice names from its library (Anagha/Chinmay for Marathi);
+# unseen speaker strings yield unconditioned/degraded voice priors. We explicitly collapse the 9 raw
+# dataset user IDs into 2 voice labels by gender so fine-tuning reinforces the model's existing Marathi voice priors.
 GENDER_TO_SPEAKER = {
     "woman": "Anagha",
     "female": "Anagha",
