@@ -389,9 +389,10 @@ def build_report():
         ["Epochs / Optimizer Steps", "3 epochs / 450 steps", "3 epochs / 1,312 steps", "2 epochs / ~1,707 steps"],
         ["Model Checkpoint Strategy", "Last checkpoint saved", "load_best_model_at_end", "load_best_model_at_end"],
         ["Sequence Batching", "Standard collator", "group_by_length=True", "group_by_length=True"],
-        ["Final Training Loss", "3.902", "<TODO: Run 2>", "<TODO: Run 3>"],
-        ["Final Validation Loss", "3.835 (eval at Ep 3)", "<TODO: Run 2>", "<TODO: Run 3>"],
-        ["Total Training Runtime", "1h 39m 37s (5,978 s)", "<TODO: ~5h 24m est.>", "<TODO: ~7h 00m est.>"],
+        ["Final Training Loss", "3.902", "3.681 – 3.690 (-0.22)", "<TODO: Run 3>"],
+        ["Final Validation Loss", "3.835 (eval at Ep 3)", "3.698 (at Ep 2.4 / Step 1,050)", "<TODO: Run 3>"],
+        ["Step Throughput", "13.47 s/it", "10.74 – 12.03 s/it", "~14.80 s/it est."],
+        ["Total Training Runtime", "1h 39m 37s (5,978 s)", "~4h 40m (~40m left)", "<TODO: ~7h 00m est.>"],
     ]
     t4 = doc.add_table(rows=1, cols=4)
     format_table(t4, [Inches(1.8), Inches(1.5), Inches(1.6), Inches(1.6)], ["Feature / Metric", "Run 1 (Baseline)", "Run 2 (Production)", "Run 3 (Full Scale)"], res_comp_data)
