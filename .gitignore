@@ -20,3 +20,6 @@ outputs/*
 
 # Jupyter Notebooks (local execution/Kaggle)
 *.ipynb
+
+# Archives
+*.zip
