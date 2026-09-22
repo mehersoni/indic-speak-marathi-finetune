@@ -64,9 +64,10 @@ def generate_speech(
     prompt_ids = build_prompt_tokens(tokenizer, text=text, speaker=speaker)
     input_ids = torch.tensor([prompt_ids], device=device)
 
-    # Heuristic cap: ~30 audio tokens per character is a generous upper bound for Marathi.
-    # Prevents runaway generation on short sentences without cutting off long ones.
-    adaptive_max = min(max_new_tokens, max(280, len(text) * 30))
+    # Observed rate from Run 2: ~10.4 audio tokens/char for Marathi.
+    # Multiplier of 14 gives ~35% headroom above observed rate.
+    # repetition_penalty breaks looping if the model misses end_of_speech.
+    adaptive_max = min(max_new_tokens, max(280, len(text) * 14))
 
     with torch.no_grad():
         gen_tokens = model.generate(
@@ -79,6 +80,7 @@ def generate_speech(
             temperature=temperature,
             top_p=top_p,
             top_k=top_k,
+            repetition_penalty=1.1,
         )
 
         new_ids = gen_tokens[0].tolist()[len(prompt_ids) :]

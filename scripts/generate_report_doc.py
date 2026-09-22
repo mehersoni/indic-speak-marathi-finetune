@@ -363,14 +363,18 @@ def build_report():
         "This is an acoustic fine-tuning artifact where LoRA on small datasets dilutes the model's confidence in emitting stop tokens on short questions versus statements."
     )
     add_p(
-        "To permanently prevent runaway generation while preserving natural speech closure, an adaptive token ceiling was engineered in src/inference.py:"
+        "Post-Run-2 analysis revealed that sentences 01–03 all hit their adaptive token cap exactly "
+        "(780, 1800, and 990 tokens respectively), meaning the model entered a repetition loop and never "
+        "predicted <|end_of_speech|>. Only sentence 00 stopped naturally at 519 tokens (cap: 1500). "
+        "The empirical rate from Run 2 data is ~10.4 audio tokens/character. The heuristic was corrected:"
     )
     add_callout(
         doc,
-        "adaptive_max = min(max_new_tokens, max(280, len(text) * 30))\n\n"
-        "At 30 tokens/character (compared to the observed Marathi speech rate of ~12 tokens/character), this formula provides 2.5x natural headroom. "
-        "For a 26-character input, the cap dynamically tightens from 2,520 tokens to 780 tokens (~9.5s), eliminating infinite audio looping.",
-        "Adaptive Token Generation Heuristic"
+        "adaptive_max = min(max_new_tokens, max(280, len(text) * 14))\n\n"
+        "Multiplier reduced from 30 to 14 (~35% headroom above observed ~10.4 tokens/char). "
+        "repetition_penalty=1.1 added to break looping before the cap is reached. "
+        "For a 26-character input, the cap tightens from 780 tokens to 364 tokens (~4.4s), matching the natural speech length.",
+        "Adaptive Token Generation Heuristic (Corrected)"
     )
 
     # --- SECTION 7: REPOSITORY STRUCTURE ---
