@@ -276,18 +276,19 @@ def build_report():
         "Isolating the dataset to Anagha guarantees sharp, coherent, high-fidelity acoustic conditioning."
     )
 
-    add_h2("4.3 Why 3,500 Training Samples? (The Kaggle Time Budget Equation)")
+    add_h2("4.3 Hardware Limits & Sample Size Derivations (12h GPU vs. 9h TPU Limits)")
     add_p(
-        "The sample size of 3,500 was rigorously derived from hardware throughput benchmarks on Kaggle T4:\n"
-        "  • Verified Run 1 Step Throughput: 13.47 seconds per optimizer step (batch size 1, gradient accumulation 8).\n"
-        "  • Estimated Overhead for MLP Adapters: +10% compute cost → 14.80 seconds per optimizer step.\n"
-        "  • Kaggle Session Envelope: 9-hour hard timeout; 7.5-hour safe operational target (27,000 seconds).\n"
-        "  • Max Allowed Optimizer Steps: 27,000 s / 14.80 s = 1,824 steps.\n"
-        "  • Max Possible Samples: (1,824 steps × 8 accum) / 3 epochs = 4,864 samples.\n\n"
-        "To preserve a 2.5-hour safety buffer for dataset downloading, multi-stage smoke testing, and audio sample generation, "
-        "3,500 samples was selected:\n"
-        "  Total Steps = (3,500 × 3) / 8 = 1,312 optimizer steps\n"
-        "  Estimated Runtime = 1,312 steps × 14.80 s = 19,418 seconds ≈ 5 hours 24 minutes."
+        "Kaggle imposes strict environment execution timeouts:\n"
+        "  • Kaggle GPU Session Limit: 12 hours (43,200 seconds).\n"
+        "  • Kaggle TPU Session Limit: 9 hours (32,400 seconds).\n\n"
+        "To ensure robust training completion without risking a hard SIGKILL at the session boundary, run dimensions were derived from verified hardware throughput:\n"
+        "  • Measured Run 1 Step Throughput: 13.47 seconds per optimizer step (batch size 1, gradient accumulation 8).\n"
+        "  • SwiGLU MLP Adapter Overhead (+10% compute): ~14.80 seconds per optimizer step.\n"
+        "  • Conservative Operational Target: ~7.5 hours (27,000 seconds), reserving 4.5 hours of safety margin below the 12-hour GPU cutoff.\n\n"
+        "Run 2 (3,500 samples, 3 epochs):\n"
+        "  Total Steps = (3,500 × 3) / 8 = 1,312 steps → 1,312 × 14.80 s = 19,418 s ≈ 5 hours 24 minutes.\n\n"
+        "Run 3 (Full Anagha Corpus ~6,829 samples, 2 epochs):\n"
+        "  Total Steps = (6,829 × 2) / 8 = 1,707 steps → 1,707 × 14.80 s = 25,264 s ≈ 7 hours 01 minute."
     )
 
     add_h2("4.4 Why Expand LoRA to SwiGLU MLP Layers (gate_proj, up_proj, down_proj)?")
