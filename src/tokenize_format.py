@@ -94,6 +94,24 @@ def audio_tokens_to_codes(audio_tokens: list[int], device: str = "cpu") -> list[
     return [c0, c1, c2]
 
 
+def build_prompt_tokens(tokenizer: Any, text: str, speaker: str = "") -> list[int]:
+    """Builds prompt token IDs for text and speaker conditioning up to start_of_speech."""
+    nl = tokenizer.encode("\n", add_special_tokens=False)
+    enc_text = tokenizer.encode(text, add_special_tokens=False)
+
+    meta: list[int] = []
+    if speaker.strip():
+        enc_speaker = tokenizer.encode(speaker.strip(), add_special_tokens=False)
+        meta = [SPEAKER_START_ID] + enc_speaker + [SPEAKER_END_ID] + nl
+
+    body = [BOS_TOKEN_ID] + meta + enc_text + [EOT_TOKEN_ID]
+    return (
+        [START_OF_HUMAN_ID]
+        + body
+        + [END_OF_HUMAN_ID, START_OF_AI_ID, START_OF_SPEECH_ID]
+    )
+
+
 def build_training_sequence(
     tokenizer: Any,
     row: dict[str, Any],
