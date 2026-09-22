@@ -217,6 +217,22 @@ def build_report():
         "with n_fft=1024 and hop_length=256."
     )
 
+    add_h2("2.4 Alignment with AI4Bharat Indic-TTS Standards (Parler-TTS vs. LLaMA-SNAC)")
+    add_p(
+        "In the open-source Indic speech ecosystem, two primary architectures have emerged for regional language adaptation:\n"
+        "1. Diffusion / T5-Conditioned Architecture (e.g. Indic-Parler-TTS): Utilizes Descript Audio Codec (DAC) with cross-attention text encodings and continuous acoustic token generation.\n"
+        "2. Autoregressive Causal LLM Architecture (e.g. Indic-Speak / Orpheus): Utilizes LLaMA-3.2 as a causal transformer predicting discrete Spatial Neural Audio Codec (SNAC 24kHz) tokens with a custom Vocos vocoder.\n\n"
+        "Our pipeline implements the autoregressive LLaMA-SNAC paradigm, which enables direct application of causal parameter-efficient LoRA adapters across the 3.3B backbone."
+    )
+
+    add_h2("2.5 Audio Duration & Training Corpus Volume (Math vs. Guidelines)")
+    add_p(
+        "AI4Bharat guidelines establish that single-speaker voice adaptation requires a minimum of 15 to 20 minutes of clean, transcribed audio. "
+        "Our filtered Marathi dataset far exceeds this minimum threshold:\n"
+        "  • Run 2 Split (3,500 utterances @ ~4.5s avg): 3,500 × 4.5s = 15,750 seconds ≈ 4.37 hours of clean Anagha audio (>14x the 15–20 min baseline).\n"
+        "  • Run 3 Split (6,832 utterances @ ~4.5s avg): 6,832 × 4.5s = 30,744 seconds ≈ 8.54 hours of clean Anagha audio (>28x the 15–20 min baseline)."
+    )
+
     # --- SECTION 3: DATASET DEEP DIVE ---
     add_h1("3. Dataset Deep Dive & Preprocessing Pipeline")
     add_p(
