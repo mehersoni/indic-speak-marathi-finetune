@@ -1,17 +1,28 @@
 """
-Downloads and inspects Marathi speech dataset with pre-encoded SNAC tokens.
-Computes dataset statistics, speaker distributions, and token length quantiles.
+Downloads, inspects, and filters Marathi speech dataset with pre-encoded SNAC tokens.
+Filters utterances exceeding 1400 total sequence tokens and computes distribution stats.
 """
 
 import json
 import os
+from pathlib import Path
 import sys
 from huggingface_hub import hf_hub_download
 import numpy as np
 import pandas as pd
+from transformers import AutoTokenizer
 
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8")
+
+# Ensure project root is in path
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+from src.tokenize_format import build_training_sequence
+
+MAX_SEQUENCE_LENGTH = 1400
 
 
 def prepare_and_inspect_marathi_data():
@@ -35,43 +46,54 @@ def prepare_and_inspect_marathi_data():
     print(f"Total rows in dataset: {len(df)}")
     print(f"Columns: {list(df.columns)}")
 
-    marathi_df = df[df["language"].str.lower() == "marathi"].copy()
+    marathi_df = df[df["language"].str.lower() == "marathi"].dropna(subset=["utterance", "snac_codes"]).copy()
+    initial_count = len(marathi_df)
     print(f"\n--- Marathi Subset Statistics ---")
-    print(f"Row count: {len(marathi_df)}")
+    print(f"Initial Marathi row count: {initial_count}")
 
-    # Speaker count & unique speakers
-    speakers = marathi_df["user"].unique()
-    print(f"Speaker count (unique 'user' IDs): {len(speakers)}")
-    print(f"Speakers: {list(speakers)}")
-    print(f"Utterances per speaker:\n{marathi_df['user'].value_counts()}")
+    # Load tokenizer for sequence construction
+    local_repo = os.path.join(os.path.expanduser("~"), "indic-speak-repo")
+    tok = AutoTokenizer.from_pretrained(local_repo)
 
-    # Sample transcripts
-    print(f"\nSample transcripts (first 3):")
-    for idx, text in enumerate(marathi_df["utterance"].head(3)):
-        print(f"  {idx + 1}. {text}")
+    # Compute exact total sequence lengths via build_training_sequence and filter
+    valid_indices = []
+    dropped_indices = []
+    all_sequence_lengths = []
 
-    # Inspect SNAC code structure for one row
-    raw_sample = marathi_df["snac_codes"].iloc[0]
-    sample_codes = json.loads(raw_sample) if isinstance(raw_sample, str) else raw_sample
-    print(f"\nSNAC structure for first row:")
-    print(f"  Container: list of {len(sample_codes)} codebook levels")
-    print(f"  Codebook lengths (c0, c1, c2): {[len(c) for c in sample_codes]}")
-    all_sample_codes = [code for c in sample_codes for code in c]
-    sample_arr = np.array(all_sample_codes, dtype=np.int32)
-    print(f"  Dtype: {sample_arr.dtype}")
-    print(f"  Min code value: {sample_arr.min()}, Max code value: {sample_arr.max()}")
-    print(f"  Interleaved token count (frames * 7): {len(sample_codes[0]) * 7}")
+    for idx, row in marathi_df.iterrows():
+        gender_val = str(row.get("gender", "")).lower()
+        speaker_name = "Anagha" if gender_val in ["woman", "female"] else "Chinmay"
+        row_dict = {
+            "utterance": str(row["utterance"]).strip(),
+            "speaker": speaker_name,
+            "snac_codes": row["snac_codes"],
+        }
+        seq = build_training_sequence(tok, row_dict)
+        seq_len = len(seq["input_ids"])
+        all_sequence_lengths.append(seq_len)
 
-    # Compute sequence lengths across Marathi subset
-    lengths = []
-    for val in marathi_df["snac_codes"]:
-        codes = json.loads(val) if isinstance(val, str) else val
-        # Total tokens = sum of c0, c1, c2 elements = 7 * len(c0)
-        total_tokens = sum(len(c) for c in codes)
-        lengths.append(total_tokens)
+        if seq_len <= MAX_SEQUENCE_LENGTH:
+            valid_indices.append(idx)
+        else:
+            dropped_indices.append((idx, seq_len))
 
-    lengths_arr = np.array(lengths)
-    print(f"\nToken Sequence Length Distribution (SNAC tokens per utterance):")
+    filtered_marathi_df = marathi_df.loc[valid_indices].copy()
+    num_dropped = len(dropped_indices)
+    num_remaining = len(filtered_marathi_df)
+
+    print(f"\n--- Sequence Length Filtering (Threshold: {MAX_SEQUENCE_LENGTH} tokens) ---")
+    print(f"Rows dropped (seq_len > {MAX_SEQUENCE_LENGTH}): {num_dropped} ({100.0 * num_dropped / initial_count:.2f}%)")
+    print(f"Rows remaining (seq_len <= {MAX_SEQUENCE_LENGTH}): {num_remaining} ({100.0 * num_remaining / initial_count:.2f}%)")
+
+    # Speaker distribution in filtered dataset
+    speakers = filtered_marathi_df["user"].unique()
+    print(f"\nFiltered Marathi Speaker Count: {len(speakers)}")
+    print(f"Filtered Utterances per speaker:\n{filtered_marathi_df['user'].value_counts()}")
+
+    # Distribution statistics on filtered sequence lengths
+    filtered_lengths = [l for l in all_sequence_lengths if l <= MAX_SEQUENCE_LENGTH]
+    lengths_arr = np.array(filtered_lengths)
+    print(f"\nFiltered Sequence Length Distribution:")
     print(f"  Count:  {len(lengths_arr)}")
     print(f"  Min:    {lengths_arr.min()}")
     print(f"  Max:    {lengths_arr.max()}")

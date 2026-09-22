@@ -50,6 +50,7 @@ def load_marathi_splits(
     parquet_path: str,
     train_size: int = 1200,
     val_size: int = 100,
+    max_sequence_length: int | None = 1400,
     seed: int = 42,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     """Loads parquet data, filters Marathi rows, and returns (train_records, val_records)."""
@@ -58,6 +59,18 @@ def load_marathi_splits(
 
     # Drop any rows missing utterance or snac_codes
     marathi_df = marathi_df.dropna(subset=["utterance", "snac_codes"])
+
+    if max_sequence_length is not None:
+        # Filter rows whose SNAC audio tokens + text prompt would exceed max_sequence_length
+        # Fast pre-filter on SNAC code lengths: 7 * len(c0) + estimated prompt <= max_sequence_length
+        valid_rows = []
+        for idx, row in marathi_df.iterrows():
+            codes = parse_snac_codes(row["snac_codes"])
+            audio_tokens_count = len(codes[0]) * 7 if isinstance(codes, list) and len(codes) > 0 else 0
+            # Allow 100 tokens margin for prompt text
+            if audio_tokens_count + 100 <= max_sequence_length:
+                valid_rows.append(idx)
+        marathi_df = marathi_df.loc[valid_rows]
 
     # Shuffle deterministically
     shuffled_df = marathi_df.sample(n=len(marathi_df), random_state=seed).reset_index(drop=True)

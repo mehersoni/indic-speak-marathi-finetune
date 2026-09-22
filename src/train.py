@@ -122,7 +122,7 @@ def train(config_path: str = "configs/marathi_lora.yaml"):
     )
     print(f"Dataset split: {len(train_records)} train, {len(val_records)} validation samples")
 
-    max_length = cfg.get("max_length", 1536)
+    max_length = cfg.get("max_sequence_length", cfg.get("max_length", 1400))
     train_dataset = MarathiSpeechDataset(train_records, tokenizer, max_length=max_length)
     val_dataset = MarathiSpeechDataset(val_records, tokenizer, max_length=max_length)
 

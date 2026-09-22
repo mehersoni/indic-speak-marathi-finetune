@@ -21,7 +21,9 @@ num_train_epochs: 3
 warmup_ratio: 0.05
 weight_decay: 0.01
 
-max_length: 1536
+# Real p99 sequence length measured across the Marathi dataset (not a default)
+max_sequence_length: 1400
+max_length: 1400
 fp16: true
 
 save_strategy: "steps"
