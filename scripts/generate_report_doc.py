@@ -114,7 +114,7 @@ def build_report():
     sub_p = doc.add_paragraph()
     sub_p.paragraph_format.space_before = Pt(0)
     sub_p.paragraph_format.space_after = Pt(14)
-    s_run = sub_p.add_run("AI4Bharat Submission — Comprehensive Technical Report & Architectural Analysis")
+    s_run = sub_p.add_run("AI4Bharat Submission — Comprehensive Technical Architecture & Multi-Run Empirical Report")
     s_run.font.name = "Arial"
     s_run.font.size = Pt(12)
     s_run.font.color.rgb = RGBColor(71, 85, 105)
@@ -131,9 +131,9 @@ def build_report():
     m3 = meta_p.add_run("Google Drive Artifacts: ")
     m3.bold = True
     meta_p.add_run("<TODO: paste Google Drive link containing checkpoints, logs, and .wav outputs>\n")
-    m4 = meta_p.add_run("Compute Environment: ")
+    m4 = meta_p.add_run("Compute Platform: ")
     m4.bold = True
-    meta_p.add_run("Kaggle NVIDIA T4 GPU (14.56 GiB VRAM), PyTorch 2.x, CUDA 12.x, Transformers v5")
+    meta_p.add_run("Kaggle NVIDIA Tesla T4 GPU (14.56 GiB VRAM, 12-Hour GPU Session Limit), PyTorch 2.x, CUDA 12.x, Transformers v5")
 
     # Helper for Headings
     def add_h1(text):
@@ -171,26 +171,26 @@ def build_report():
     # --- SECTION 1: EXECUTIVE SUMMARY ---
     add_h1("1. Executive Summary & Objective")
     add_p(
-        "This project fine-tunes bodhan-ai/indic-speak — a state-of-the-art 3.3-billion parameter multilingual Text-to-Speech (TTS) model "
-        "built on the LLaMA-3.2 architecture — to significantly enhance the naturalness, phoneme articulation, and prosody of Marathi speech synthesis. "
-        "By leveraging Parameter-Efficient Fine-Tuning (PEFT) with Low-Rank Adaptation (LoRA), the entire training pipeline is engineered "
-        "to execute within the tight memory and runtime constraints of a single Kaggle NVIDIA T4 GPU (14.56 GiB VRAM)."
+        "This project fine-tunes bodhan-ai/indic-speak — a state-of-the-art 3.3-billion parameter causal autoregressive Text-to-Speech (TTS) model "
+        "built upon the LLaMA-3.2 architecture — specifically adapted for high-fidelity Marathi speech synthesis. "
+        "The objective was to transform the multilingual base model into a natural Marathi voice generator capable of accurate consonant articulation, "
+        "compound character handling, natural pitch contours, and fluent speaking cadences, while operating strictly within the resource constraints "
+        "of a single Kaggle NVIDIA T4 GPU (14.56 GiB VRAM, 12-hour session timeout limit)."
     )
     add_p(
-        "The project progressed across two iterative cycles: an initial baseline run (1,200 samples, attention-only LoRA) that exposed crucial phonetic "
-        "and architectural bottlenecks (such as end-of-speech suppression on short sentences), followed by a deeply optimized production run (3,500 samples, "
-        "female-only speaker isolation, SwiGLU MLP adapter expansion, and tuned learning rate schedules)."
+        "The project progressed across three progressive iterations:\n"
+        "1. Run 1 (Baseline): 1,200 samples (mixed gender), attention-only LoRA, lr=1e-4, 450 steps. Exposed critical phonetic bottlenecks (early loss plateau at 3.835) and end-of-speech suppression on short sentences.\n"
+        "2. Run 2 (Production Balanced): 3,500 Anagha-only female samples, attention + SwiGLU MLP LoRA, lr=3e-5, warmup=50 steps, 1,314 steps. Broke through the plateau to train loss 3.681 and val loss 3.698.\n"
+        "3. Run 3 (Full-Scale Scaling): ~6,829 samples (100% of Anagha corpus), 2 full epochs (~1,707 steps), complete dataset coverage."
     )
 
     # --- SECTION 2: BASE MODEL ARCHITECTURE ---
     add_h1("2. Foundation Model Architecture & Acoustic Tokenization")
-    add_p(
-        "The base model bodhan-ai/indic-speak represents a modern paradigm in neural text-to-speech: casting speech generation as an autoregressive language "
-        "modeling task over discrete multi-scale neural audio tokens."
-    )
     add_h2("2.1 Model Specifications")
     add_p(
         "• Backbone Architecture: LLaMA-3.2 Causal Language Model with 28 decoder layers, hidden dimension 3072, 24 query attention heads, and 8 key-value heads (Grouped-Query Attention).\n"
+        "• Intermediate MLP Dimension: 8,192 (SwiGLU activation).\n"
+        "• Rotary Position Embeddings (RoPE): Base theta 500,000.\n"
         "• Total Parameters: 3,300,928,512 parameters (3.30B).\n"
         "• Vocabulary Space (156,960 total tokens):\n"
         "    - Indices 0 – 127,999: LLaMA Text BPE subwords.\n"
@@ -206,7 +206,8 @@ def build_report():
         "and 4 tokens from codebook 2 (c2), yielding exactly 7 audio tokens per ultra-frame.\n"
         "The model serializes these multi-rate codebooks into a single 1D causal stream via a deterministic interleave sequence:\n"
         "    [c0[i],  c1[2i],  c2[4i],  c2[4i+1],  c1[2i+1],  c2[4i+2],  c2[4i+3]]\n"
-        "At 24kHz, this layout produces approximately ~82 audio tokens per second of synthesized speech."
+        "Token ID Mapping: Token_ID = 128,266 + (Codebook_Index * 4,096) + Quantizer_Value.\n"
+        "At 24kHz with an effective hop of 512 samples per frame, this layout produces approximately ~82 audio tokens per second of synthesized speech."
     )
     add_h2("2.3 Custom Vocos Neural Vocoder")
     add_p(
@@ -229,7 +230,7 @@ def build_report():
         "2. Null & Corruption Cleansing: Drop records missing text utterances or SNAC codes, leaving 7,531 clean rows.\n"
         "3. Sequence Length Thresholding (Threshold: 1,400 tokens): Measured via empirical p99 profiling across the dataset. "
         "Training sequences comprise text prompt tokens, control tokens, and 7 × len(codebook_0) audio tokens. 7,531 rows comfortably pass within 1,400 tokens.\n"
-        "4. Gender & Speaker Conditioning Cleansing (Anagha-Only): Female rows (92.1% / 6,929 rows) are retained; male rows (7.9% / 602 rows) are dropped."
+        "4. Gender & Speaker Conditioning Cleansing (Anagha-Only): Female rows (92.01% / 6,929 rows) are retained; male rows (7.99% / 602 rows) are dropped."
     )
 
     # Dataset Distribution Table
@@ -239,6 +240,7 @@ def build_report():
         ["Female (Anagha)", "6,929", "92.01%", "Retained for single-voice training"],
         ["Male (Chinmay)", "602", "7.99%", "Dropped (too sparse to train voice quality)"],
         ["Training Split (Run 2)", "3,500", "50.51% of Anagha", "Deterministic shuffle (seed=42)"],
+        ["Full Training Split (Run 3)", "6,829", "98.56% of Anagha", "100% available corpus"],
         ["Validation Split", "100", "1.44% of Anagha", "Held-out evaluation split"],
     ]
     t1 = doc.add_table(rows=1, cols=4)
@@ -269,7 +271,7 @@ def build_report():
 
     add_h2("4.2 Why Drop Male Data (Chinmay) & Train Anagha-Only?")
     add_p(
-        "The Marathi dataset exhibits a severe 92.1% / 7.9% gender imbalance. In a sample of 3,500 utterances, male speakers account for only ~280 examples. "
+        "The Marathi dataset exhibits a severe 92.01% / 7.99% gender imbalance. In a sample of 3,500 utterances, male speakers account for only ~280 examples. "
         "A neural TTS model must simultaneously learn acoustic pitch contours, formant transitions, consonant durations, and speaker identity embeddings. "
         "280 utterances provide insufficient statistical support to learn a robust male voice prior; instead, these out-of-distribution gradients pull the model's "
         "learned phonetic alignment away from Anagha's clean acoustic distribution, introducing hoarseness and jitter. "
@@ -283,12 +285,12 @@ def build_report():
         "  • Kaggle TPU Session Limit: 9 hours (32,400 seconds).\n\n"
         "To ensure robust training completion without risking a hard SIGKILL at the session boundary, run dimensions were derived from verified hardware throughput:\n"
         "  • Measured Run 1 Step Throughput: 13.47 seconds per optimizer step (batch size 1, gradient accumulation 8).\n"
-        "  • SwiGLU MLP Adapter Overhead (+10% compute): ~14.80 seconds per optimizer step.\n"
+        "  • Measured Run 2 Optimized Throughput (with group_by_length=True): 10.74 – 12.03 seconds per optimizer step.\n"
         "  • Conservative Operational Target: ~7.5 hours (27,000 seconds), reserving 4.5 hours of safety margin below the 12-hour GPU cutoff.\n\n"
         "Run 2 (3,500 samples, 3 epochs):\n"
-        "  Total Steps = (3,500 × 3) / 8 = 1,312 steps → 1,312 × 14.80 s = 19,418 s ≈ 5 hours 24 minutes.\n\n"
+        "  Total Steps = (3,500 × 3) / 8 = 1,314 steps → 1,314 × 11.5 s = 15,111 s ≈ 4 hours 12 minutes.\n\n"
         "Run 3 (Full Anagha Corpus ~6,829 samples, 2 epochs):\n"
-        "  Total Steps = (6,829 × 2) / 8 = 1,707 steps → 1,707 × 14.80 s = 25,264 s ≈ 7 hours 01 minute."
+        "  Total Steps = (6,829 × 2) / 8 = 1,707 steps → 1,707 × 12.0 s = 20,484 s ≈ 5 hours 41 minutes."
     )
 
     add_h2("4.4 Why Expand LoRA to SwiGLU MLP Layers (gate_proj, up_proj, down_proj)?")
@@ -304,7 +306,7 @@ def build_report():
     add_p(
         "In Run 1, an aggressive learning rate of 1e-4 with only 10 warmup steps caused the loss to plateau prematurely at step ~300 (epoch 2). "
         "The optimizer took massive gradient steps while the randomly initialized adapter matrices were unstable, overshooting the local minimum. "
-        "For Run 2, lowering the learning rate to 3e-5 combined with a 50-step linear warmup (~3.8% of training) gives the AdamW optimizer time to establish "
+        "For Run 2 & 3, lowering the learning rate to 3e-5 combined with a 50-step linear warmup (~3.8% of training) gives the AdamW optimizer time to establish "
         "accurate second-moment estimates, ensuring smooth, monotonic convergence."
     )
 
@@ -333,7 +335,8 @@ def build_report():
         "prevents autograd graph duplication and eliminates backward-pass OOM errors.\n"
         "3. Multi-GPU Device Isolation: Kaggle environments often expose dual virtual GPUs. Setting CUDA_VISIBLE_DEVICES=0 prevents PyTorch DataParallel from replicating "
         "the 6.6GB model across devices, ensuring all VRAM is reserved on device 0.\n"
-        "4. Dependency Conflict Removal: Pre-installed torchao==0.10.0 directly conflicts with modern peft. The pipeline proactively executes !pip uninstall -y torchao in Cell 1."
+        "4. Dependency Conflict Removal: Pre-installed torchao==0.10.0 directly conflicts with modern peft. The pipeline proactively executes !pip uninstall -y torchao in Cell 1.\n"
+        "5. Dynamic Sequence Batching: Enabling group_by_length=True groups similar sequence lengths together, cutting wasted padding tokens and speeding up step throughput from 13.47 s/it to 10.74–12.03 s/it."
     )
 
     # --- SECTION 6: INFERENCE & ADAPTIVE CAP ---
@@ -341,7 +344,7 @@ def build_report():
     add_p(
         "During Run 1 inference, a critical failure mode emerged: on short sentences (Sample 01: 26 characters), the model exhibited runaway generation, "
         "producing 2,520 tokens (30.72 seconds) before hitting the hard cap without ever emitting an END_OF_SPEECH token (128258). "
-        "This is an acoustic fine-tuning artifact where LoRA on small datasets dilutes the model's confidence in emitting stop tokens on questions versus statements."
+        "This is an acoustic fine-tuning artifact where LoRA on small datasets dilutes the model's confidence in emitting stop tokens on short questions versus statements."
     )
     add_p(
         "To permanently prevent runaway generation while preserving natural speech closure, an adaptive token ceiling was engineered in src/inference.py:"
@@ -360,16 +363,20 @@ def build_report():
         "The project codebase is cleanly structured into modular, single-responsibility components adhering to strict engineering standards:"
     )
     repo_data = [
-        ["configs/marathi_lora.yaml", "Configuration file defining all training hyperparameters (lr, warmup, batch size, LoRA rank)."],
+        ["configs/marathi_lora.yaml", "Run 2 config: 3,500 samples, 3 epochs, lr=3e-5, warmup=50, load_best_model_at_end, group_by_length."],
+        ["configs/marathi_lora_full.yaml", "Run 3 config: ~6,829 samples (100% Anagha), 2 epochs, lr=3e-5, outputs/lora_marathi_full."],
         ["scripts/prepare_dataset.py", "Downloads dataset from Hugging Face Hub, computes sequence length percentiles, and verifies filtering."],
         ["scripts/smoke_test.py", "Runs 5-stage pre-flight checks: model load, forward pass, backward pass, optimizer step, NaN/Inf gradient check."],
+        ["scripts/generate_report_doc.py", "Programmatic Word (.docx) report generator constructing complete technical documentation."],
+        ["scripts/evaluate_asr.py", "Audio inspection and Levenshtein Character/Word Error Rate (CER/WER) evaluation tool."],
         ["src/dataset.py", "Implements parquet resolution, language/gender filtering, speaker mapping, and PyTorch Dataset class."],
         ["src/tokenize_format.py", "Constructs prompt token streams, serializes SNAC 7-token frame interleaving, and handles token-to-code dequantization."],
         ["src/train.py", "Main training entrypoint: dynamically discovers target modules, attaches LoRA, configures Trainer, and executes training."],
         ["src/inference.py", "Synthesis entrypoint: loads base model + adapter, builds prompts, runs generation with adaptive token caps, outputs .wav."],
         ["src/utils.py", "Centralized repository constants: special token IDs, sample rates (24kHz), audio token base offset (128,266)."],
         ["src/vocos/load.py & model.py", "Bundled custom Vocos neural vocoder (ConvNeXt-1D + iSTFT head) to synthesize audio without external pip vocos."],
-        ["marathi_finetune_kaggle.ipynb", "8-cell end-to-end Kaggle execution notebook with absolute paths, authentication, and audio players."],
+        ["marathi_finetune_kaggle.ipynb", "Main Kaggle execution notebook (Run 2)."],
+        ["marathi_finetune_full_data_kaggle.ipynb", "Standalone Kaggle execution notebook for full dataset scaling (Run 3)."],
     ]
     t3 = doc.add_table(rows=1, cols=2)
     format_table(t3, [Inches(2.2), Inches(4.3)], ["File Path", "Functional Role in Pipeline"], repo_data)
@@ -386,13 +393,13 @@ def build_report():
         ["LoRA Target Modules", "q, k, v, o (Attention only)", "q, k, v, o, gate, up, down", "q, k, v, o, gate, up, down"],
         ["Trainable Parameters", "9,175,040 (0.277%)", "~27,000,000 (~0.820%)", "~27,000,000 (~0.820%)"],
         ["Learning Rate / Warmup", "1e-4 / 10 steps", "3e-5 / 50 steps", "3e-5 / 50 steps"],
-        ["Epochs / Optimizer Steps", "3 epochs / 450 steps", "3 epochs / 1,312 steps", "2 epochs / ~1,707 steps"],
+        ["Epochs / Optimizer Steps", "3 epochs / 450 steps", "3 epochs / 1,314 steps", "2 epochs / ~1,707 steps"],
         ["Model Checkpoint Strategy", "Last checkpoint saved", "load_best_model_at_end", "load_best_model_at_end"],
         ["Sequence Batching", "Standard collator", "group_by_length=True", "group_by_length=True"],
         ["Final Training Loss", "3.902", "3.681 – 3.690 (-0.22)", "<TODO: Run 3>"],
         ["Final Validation Loss", "3.835 (eval at Ep 3)", "3.698 (at Ep 2.4 / Step 1,050)", "<TODO: Run 3>"],
-        ["Step Throughput", "13.47 s/it", "10.74 – 12.03 s/it", "~14.80 s/it est."],
-        ["Total Training Runtime", "1h 39m 37s (5,978 s)", "~4h 40m (~40m left)", "<TODO: ~7h 00m est.>"],
+        ["Step Throughput", "13.47 s/it", "10.74 – 12.03 s/it", "~12.00 s/it est."],
+        ["Total Training Runtime", "1h 39m 37s (5,978 s)", "~4h 35m (Live in progress)", "<TODO: ~5h 41m est.>"],
     ]
     t4 = doc.add_table(rows=1, cols=4)
     format_table(t4, [Inches(1.8), Inches(1.5), Inches(1.6), Inches(1.6)], ["Feature / Metric", "Run 1 (Baseline)", "Run 2 (Production)", "Run 3 (Full Scale)"], res_comp_data)
@@ -404,7 +411,7 @@ def build_report():
     )
     audio_data = [
         ["00", "नमस्कार, आज आपण विज्ञान विषयाचा अभ्यास करणार आहोत.", "309 (3.75s)", "568 (6.91s)", "<TODO: Run 2>", "<TODO: Run 3>"],
-        ["01", "मॅडम, काही मदत हवी आहे का?", "323 (3.93s)", "2,520 (30.72s) ⚠️", "<TODO: Run 2>", "<TODO: Run 3>"],
+        ["01", "मॅडम, काही मदत हवी आहे का?", "323 (3.93s)", "2,520 (30.72s) ⚠️", "<TODO: Run 2 (≤780)>", "<TODO: Run 3>"],
         ["02", "महाराष्ट्र हे भारतातील एक पुरोगामी आणि महत्त्वाचे राज्य आहे.", "456 (5.55s)", "<TODO: Run 1>", "<TODO: Run 2>", "<TODO: Run 3>"],
         ["03", "शिक्षण हे मानवी जीवनाचा पाया आहे.", "<TODO: Base>", "<TODO: Run 1>", "<TODO: Run 2>", "<TODO: Run 3>"],
     ]
@@ -437,9 +444,9 @@ def build_report():
     add_p(
         "1. Automated Cloud Synchronization: A critical operational lesson was learned when a runtime disconnection wiped an earlier trained adapter. "
         "Implementing automated checkpoint synchronization to Hugging Face Hub (via model.push_to_hub) or Google Drive at regular step intervals guarantees persistence.\n"
-        "2. Full Anagha Dataset Scaling: With additional GPU quota, training on the entire corpus of 6,929 Anagha utterances will provide richer phoneme co-articulation coverage.\n"
+        "2. Full Anagha Dataset Scaling: Run 3 expands training to the entire corpus of 6,829 Anagha utterances, providing richer phoneme co-articulation coverage.\n"
         "3. Objective Acoustic Metrics (ASR Word Error Rate): Beyond subjective MOS listening tests, future iterations should transcribe synthesized audio using a Marathi ASR model "
-        "(such as IndicWav2Vec or Whisper-Marathi) to calculate Character Error Rate (CER) and Word Error Rate (WER) as an automated quality gate.\n"
+        "(such as IndicWav2Vec or Whisper-Marathi) with scripts/evaluate_asr.py to calculate Character Error Rate (CER) and Word Error Rate (WER) as an automated quality gate.\n"
         "4. Rank Exploration (r=32): Investigating rank-32 adapters across all 7 target projections to evaluate whether higher rank captures finer prosodic nuances in compound Marathi consonants."
     )
 
