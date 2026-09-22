@@ -97,8 +97,8 @@ def load_marathi_splits(
         for idx, row in marathi_df.iterrows():
             codes = parse_snac_codes(row["snac_codes"])
             audio_tokens_count = len(codes[0]) * 7 if isinstance(codes, list) and len(codes) > 0 else 0
-            # Allow 100 tokens margin for prompt text
-            if audio_tokens_count + 100 <= max_sequence_length:
+            # Allow 110 tokens margin for prompt text (longest observed prompt is ~105 tokens)
+            if audio_tokens_count + 110 <= max_sequence_length:
                 valid_rows.append(idx)
         marathi_df = marathi_df.loc[valid_rows]
 
