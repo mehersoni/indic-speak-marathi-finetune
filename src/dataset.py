@@ -4,6 +4,7 @@ Extracts Marathi utterances, decodes SNAC tokens, and creates train/val splits.
 """
 
 import json
+import os
 from typing import Any
 import pandas as pd
 from torch.utils.data import Dataset
@@ -49,6 +50,31 @@ class MarathiSpeechDataset(Dataset):
         )
 
 
+def resolve_dataset_path(parquet_path: str) -> str:
+    """Finds existing parquet file or downloads from Hugging Face if missing."""
+    if os.path.isfile(parquet_path):
+        return parquet_path
+
+    cache_path = os.path.join(os.path.expanduser("~"), "indic-dataset-cache", os.path.basename(parquet_path))
+    if os.path.isfile(cache_path):
+        return cache_path
+
+    parent_path = os.path.join(os.path.dirname(__file__), "..", os.path.basename(parquet_path))
+    if os.path.isfile(parent_path):
+        return parent_path
+
+    print(f"Downloading dataset from Hugging Face: snorbyte/indic-tts-sample-snac-encoded...")
+    from huggingface_hub import hf_hub_download
+    cache_dir = os.path.join(os.path.expanduser("~"), "indic-dataset-cache")
+    return hf_hub_download(
+        repo_id="snorbyte/indic-tts-sample-snac-encoded",
+        filename="data_stage_1.parquet",
+        repo_type="dataset",
+        local_dir=cache_dir,
+        token=os.environ.get("HF_TOKEN"),
+    )
+
+
 def load_marathi_splits(
     parquet_path: str,
     train_size: int = 1200,
@@ -57,7 +83,8 @@ def load_marathi_splits(
     seed: int = 42,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     """Loads parquet data, filters Marathi rows, and returns (train_records, val_records)."""
-    df = pd.read_parquet(parquet_path)
+    resolved_path = resolve_dataset_path(parquet_path)
+    df = pd.read_parquet(resolved_path)
     marathi_df = df[df["language"].str.lower() == "marathi"].copy()
 
     # Drop any rows missing utterance or snac_codes

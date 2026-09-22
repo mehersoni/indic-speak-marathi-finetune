@@ -41,6 +41,11 @@ def prepare_and_inspect_marathi_data():
             token=token,
         )
 
+    # Ensure a copy exists in the local working directory as well
+    if not os.path.exists("data_stage_1.parquet") and os.path.exists(local_path):
+        import shutil
+        shutil.copyfile(local_path, "data_stage_1.parquet")
+
     print(f"Dataset path: {local_path}")
     df = pd.read_parquet(local_path)
     print(f"Total rows in dataset: {len(df)}")
