@@ -42,12 +42,7 @@ def load_vocos_decoder(model_path: str, device: str = "cpu"):
         from huggingface_hub import hf_hub_download
         ckpt_path = hf_hub_download(repo_id=model_path, filename="vocos/best.pt", token=os.environ.get("HF_TOKEN"))
 
-    # Add directory containing vocos module to path
-    vocos_dir = Path(ckpt_path).parent.parent
-    if str(vocos_dir) not in sys.path:
-        sys.path.insert(0, str(vocos_dir))
-
-    from vocos.load import load_vocos
+    from src.vocos.load import load_vocos
     return load_vocos(ckpt_path, device=device)
 
 
