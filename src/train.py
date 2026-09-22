@@ -117,15 +117,16 @@ def train(config_path: str = "configs/marathi_lora.yaml"):
     # Load dataset
     dataset_path = cfg.get("dataset_path", "data_stage_1.parquet")
     print(f"\nLoading dataset from: {dataset_path}")
+    max_length = cfg.get("max_sequence_length", cfg.get("max_length", 1400))
     train_records, val_records = load_marathi_splits(
         parquet_path=dataset_path,
         train_size=cfg.get("train_size", 1200),
         val_size=cfg.get("val_size", 100),
+        max_sequence_length=max_length,
         seed=cfg.get("seed", 42),
     )
     print(f"Dataset split: {len(train_records)} train, {len(val_records)} validation samples")
 
-    max_length = cfg.get("max_sequence_length", cfg.get("max_length", 1400))
     train_dataset = MarathiSpeechDataset(train_records, tokenizer, max_length=max_length)
     val_dataset = MarathiSpeechDataset(val_records, tokenizer, max_length=max_length)
 

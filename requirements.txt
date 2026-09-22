@@ -3,7 +3,7 @@
 # Note: torch is omitted because Kaggle environments ship a GPU-matched torch
 # preinstalled; reinstalling it risks breaking the CUDA match.
 
-transformers>=4.45.0
+transformers>=5.0.0
 peft>=0.12.0
 accelerate>=0.33.0
 snac>=1.2.1

@@ -68,7 +68,7 @@ def prepare_and_inspect_marathi_data():
 
     for idx, row in marathi_df.iterrows():
         gender_val = str(row.get("gender", "")).lower()
-        speaker_name = "Anagha" if gender_val in ["woman", "female"] else "Chinmay"
+        speaker_name = "Anagha" if gender_val in ["woman", "female"] else ("Chinmay" if gender_val in ["man", "male"] else "Anagha")
         row_dict = {
             "utterance": str(row["utterance"]).strip(),
             "speaker": speaker_name,
