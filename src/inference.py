@@ -58,8 +58,8 @@ def generate_speech(
     top_p: float = 0.9,
     top_k: int = 50,
     max_new_tokens: int = 2520,
-) -> np.ndarray:
-    """Generates 24 kHz mono speech waveform for a Marathi text string."""
+) -> tuple[np.ndarray, int, int]:
+    """Generates 24 kHz mono speech waveform for a Marathi text string. Returns (waveform, num_audio_tokens, num_prompt_tokens)."""
     prompt_ids = build_prompt_tokens(tokenizer, text=text, speaker=speaker)
     input_ids = torch.tensor([prompt_ids], device=device)
 
@@ -77,6 +77,7 @@ def generate_speech(
         )
 
         new_ids = gen_tokens[0].tolist()[len(prompt_ids) :]
+        num_audio_tokens = len(new_ids)
         codes = audio_tokens_to_codes(new_ids, device=device)
         z_q = snac_model.quantizer.from_codes(codes)
 
@@ -85,7 +86,8 @@ def generate_speech(
         else:
             wav = snac_model.decoder(z_q)
 
-        return wav[0, 0].clamp(-1, 1).float().cpu().numpy()
+        waveform = wav[0, 0].clamp(-1, 1).float().cpu().numpy()
+        return waveform, num_audio_tokens, len(prompt_ids)
 
 
 def run_inference(
@@ -140,7 +142,7 @@ def run_inference(
     print(f"\nGenerating audio for {len(test_sentences)} sentences (Prefix: {name_prefix}_NN.wav)...")
 
     for idx, sentence in enumerate(test_sentences):
-        wav = generate_speech(
+        wav, num_audio_tokens, num_prompt_tokens = generate_speech(
             model=model,
             tokenizer=tokenizer,
             snac_model=snac_model,
@@ -154,7 +156,8 @@ def run_inference(
         save_file = out_path / wav_filename
         sf.write(str(save_file), wav, SAMPLE_RATE)
         duration_sec = len(wav) / SAMPLE_RATE
-        print(f"  [{idx:02d}] {duration_sec:.2f}s -> {save_file} | \"{sentence}\"")
+        print(f"  [{name_prefix}_{idx:02d}] {duration_sec:.2f}s | {num_audio_tokens} audio tokens (prompt: {num_prompt_tokens} tokens) -> {save_file}")
+        print(f"       Text: \"{sentence}\" ({len(sentence)} chars, {len(sentence.split())} words)\n")
 
 
 def main():
