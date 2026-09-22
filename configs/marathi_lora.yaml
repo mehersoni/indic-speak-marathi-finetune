@@ -1,11 +1,32 @@
-# LoRA fine-tuning configuration for Marathi speech model.
-# Defines training hyperparameters, model paths, and adapter settings.
-model_name_or_path: ""
-dataset_path: ""
+# LoRA fine-tuning configuration for Marathi speech model on 16GB T4 GPU.
+# Sets conservative batch size, gradient accumulation, and gradient checkpointing.
+
+model_name_or_path: "bodhan-ai/indic-speak"
+dataset_path: "data_stage_1.parquet"
 output_dir: "outputs/lora_marathi"
-learning_rate: 0.0001
-batch_size: 4
-num_train_epochs: 3
+
+train_size: 1200
+val_size: 100
+seed: 42
+
 lora_r: 16
 lora_alpha: 32
 lora_dropout: 0.05
+
+batch_size: 1
+gradient_accumulation_steps: 8
+gradient_checkpointing: true
+learning_rate: 0.0001
+num_train_epochs: 3
+warmup_ratio: 0.05
+weight_decay: 0.01
+
+max_length: 1536
+fp16: true
+
+save_strategy: "steps"
+save_steps: 50
+eval_strategy: "steps"
+eval_steps: 50
+logging_steps: 10
+save_total_limit: 3
