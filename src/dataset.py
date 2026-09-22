@@ -102,6 +102,9 @@ def load_marathi_splits(
                 valid_rows.append(idx)
         marathi_df = marathi_df.loc[valid_rows]
 
+    # Keep female speakers (Anagha) only — 8% male rows are too sparse to teach reliably
+    marathi_df = marathi_df[marathi_df["gender"].str.lower().isin(["woman", "female"])]
+
     # Shuffle deterministically
     shuffled_df = marathi_df.sample(n=len(marathi_df), random_state=seed).reset_index(drop=True)
 

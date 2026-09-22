@@ -35,14 +35,17 @@ def load_config(config_path: str) -> dict[str, Any]:
 
 
 def find_linear_attention_modules(model: torch.nn.Module) -> list[str]:
-    """Finds all unique linear attention module target names in the model."""
-    attention_target_candidates = ["q_proj", "k_proj", "v_proj", "o_proj"]
+    """Finds all unique linear module target names in the model for LoRA."""
+    target_candidates = [
+        "q_proj", "k_proj", "v_proj", "o_proj",    # attention
+        "gate_proj", "up_proj", "down_proj",          # MLP — needed for audio token distribution
+    ]
     found_modules = set()
 
     for name, module in model.named_modules():
         if isinstance(module, torch.nn.Linear):
             leaf_name = name.split(".")[-1]
-            if leaf_name in attention_target_candidates:
+            if leaf_name in target_candidates:
                 found_modules.add(leaf_name)
 
     return sorted(list(found_modules))

@@ -5,7 +5,7 @@ model_name_or_path: "bodhan-ai/indic-speak"
 dataset_path: "data_stage_1.parquet"
 output_dir: "outputs/lora_marathi"
 
-train_size: 1200
+train_size: 3500
 val_size: 100
 seed: 42
 
@@ -16,9 +16,9 @@ lora_dropout: 0.05
 batch_size: 1
 gradient_accumulation_steps: 8
 gradient_checkpointing: true
-learning_rate: 0.0001
+learning_rate: 0.00003
 num_train_epochs: 3
-warmup_steps: 10
+warmup_steps: 50
 weight_decay: 0.01
 
 # Real p99 sequence length measured across the Marathi dataset (not a default)
