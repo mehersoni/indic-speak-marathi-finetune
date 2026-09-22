@@ -21,5 +21,6 @@ outputs/*
 # Jupyter Notebooks (local execution/Kaggle)
 *.ipynb
 
-# Archives
+# Archives & Document Deliverables
 *.zip
+*.docx

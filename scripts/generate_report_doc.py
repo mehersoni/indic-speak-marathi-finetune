@@ -148,9 +148,9 @@ def build_report():
     m2 = meta_p.add_run("GitHub Repository: ")
     m2.bold = True
     meta_p.add_run("https://github.com/mehersoni/indic-speak-marathi-finetune\n")
-    m3 = meta_p.add_run("Google Drive Artifacts: ")
+    m3 = meta_p.add_run("Submission Artifacts: ")
     m3.bold = True
-    meta_p.add_run("<TODO: paste Google Drive link containing checkpoints, logs, and .wav outputs>\n")
+    meta_p.add_run("Checkpoints, evaluation logs, and audio samples bundled in submission package\n")
     m4 = meta_p.add_run("Compute Platform: ")
     m4.bold = True
     meta_p.add_run("Kaggle NVIDIA Tesla T4 GPU (14.56 GiB VRAM, 12-Hour GPU Session Limit), PyTorch 2.x, CUDA 12.x, Transformers v5")
