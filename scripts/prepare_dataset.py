@@ -53,7 +53,8 @@ def prepare_and_inspect_marathi_data():
 
     # Load tokenizer for sequence construction
     local_repo = os.path.join(os.path.expanduser("~"), "indic-speak-repo")
-    tok = AutoTokenizer.from_pretrained(local_repo)
+    model_id = local_repo if os.path.isdir(local_repo) else "bodhan-ai/indic-speak"
+    tok = AutoTokenizer.from_pretrained(model_id, token=os.environ.get("HF_TOKEN"))
 
     # Compute exact total sequence lengths via build_training_sequence and filter
     valid_indices = []

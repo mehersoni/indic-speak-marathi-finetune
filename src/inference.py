@@ -40,7 +40,7 @@ def load_vocos_decoder(model_path: str, device: str = "cpu"):
         ckpt_path = str(local_pt)
     else:
         from huggingface_hub import hf_hub_download
-        ckpt_path = hf_hub_download(repo_id=model_path, filename="vocos/best.pt")
+        ckpt_path = hf_hub_download(repo_id=model_path, filename="vocos/best.pt", token=os.environ.get("HF_TOKEN"))
 
     # Add directory containing vocos module to path
     vocos_dir = Path(ckpt_path).parent.parent
@@ -108,13 +108,15 @@ def run_inference(
 
     # Check local repository snapshot if available
     local_repo = os.path.join(os.path.expanduser("~"), "indic-speak-repo")
-    model_id = local_repo if os.path.exists(local_repo) and not os.path.exists(base_model_path) else base_model_path
+    model_id = local_repo if os.path.isdir(local_repo) else base_model_path
+    hf_token = os.environ.get("HF_TOKEN")
 
     print(f"Loading base model and tokenizer from: {model_id}")
-    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    tokenizer = AutoTokenizer.from_pretrained(model_id, token=hf_token)
     model = AutoModelForCausalLM.from_pretrained(
         model_id,
         torch_dtype=model_dtype,
+        token=hf_token,
         attn_implementation="sdpa",
     ).to(device)
 

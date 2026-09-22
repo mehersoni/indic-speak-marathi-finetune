@@ -71,10 +71,7 @@ def run_smoke_test(config_path: str = "configs/marathi_lora.yaml"):
 
     # If running locally and local repo exists, use local snapshot
     local_repo = os.path.join(os.path.expanduser("~"), "indic-speak-repo")
-    if os.path.exists(local_repo) and not os.path.exists(model_id):
-        model_load_path = local_repo
-    else:
-        model_load_path = model_id
+    model_load_path = local_repo if os.path.isdir(local_repo) else model_id
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # Use float16 on GPU (as on T4) or float32 fallback on CPU for compatibility
@@ -85,14 +82,16 @@ def run_smoke_test(config_path: str = "configs/marathi_lora.yaml"):
     print(f"Precision: {model_dtype}")
     print(f"Loading model/tokenizer from: {model_load_path}")
 
-    tokenizer = AutoTokenizer.from_pretrained(model_load_path)
+    hf_token = os.environ.get("HF_TOKEN")
+    tokenizer = AutoTokenizer.from_pretrained(model_load_path, token=hf_token)
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token = "<|pad|>"
         tokenizer.pad_token_id = PAD_TOKEN_ID
 
     model = AutoModelForCausalLM.from_pretrained(
         model_load_path,
-        torch_dtype=model_dtype,
+        dtype=model_dtype,
+        token=hf_token,
         attn_implementation="sdpa",
     ).to(device)
 

@@ -4,6 +4,7 @@ Loads model/tokenizer, attaches LoRA adapters, and trains using Hugging Face Tra
 """
 
 import argparse
+import os
 from pathlib import Path
 import sys
 from typing import Any
@@ -69,17 +70,21 @@ def train(config_path: str = "configs/marathi_lora.yaml"):
     cfg = load_config(config_path)
 
     model_id = cfg.get("model_name_or_path", "bodhan-ai/indic-speak")
-    print(f"Loading tokenizer and model from: {model_id}")
+    local_repo = os.path.join(os.path.expanduser("~"), "indic-speak-repo")
+    model_load_path = local_repo if os.path.isdir(local_repo) else model_id
+    hf_token = os.environ.get("HF_TOKEN")
+    print(f"Loading tokenizer and model from: {model_load_path}")
 
-    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    tokenizer = AutoTokenizer.from_pretrained(model_load_path, token=hf_token)
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token = "<|pad|>"
         tokenizer.pad_token_id = PAD_TOKEN_ID
 
     # Use fp16 precision for Kaggle T4 compatibility (no native bf16 support on T4)
     model = AutoModelForCausalLM.from_pretrained(
-        model_id,
+        model_load_path,
         torch_dtype=torch.float16,
+        token=hf_token,
         attn_implementation="sdpa",
     )
 
