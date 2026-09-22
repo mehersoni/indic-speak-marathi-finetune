@@ -1,0 +1,19 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Audio and model weights
+*.wav
+*.safetensors
+
+# Secrets and environment files
+.env
+.env.*
+*hf_token*
+*kaggle*.json
+kaggle.json
+.huggingface/
+
+# Outputs directory (keep outputs/examples)
+outputs/*
+!outputs/examples/

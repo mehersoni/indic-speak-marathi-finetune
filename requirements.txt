@@ -1,0 +1,9 @@
+# Core dependencies for indic-speak-marathi pipeline.
+# Pinning essential packages for speech modeling, training, and tokenization.
+torch
+torchaudio
+transformers
+datasets
+accelerate
+peft
+pyyaml

@@ -1,0 +1,11 @@
+# LoRA fine-tuning configuration for Marathi speech model.
+# Defines training hyperparameters, model paths, and adapter settings.
+model_name_or_path: ""
+dataset_path: ""
+output_dir: "outputs/lora_marathi"
+learning_rate: 0.0001
+batch_size: 4
+num_train_epochs: 3
+lora_r: 16
+lora_alpha: 32
+lora_dropout: 0.05
