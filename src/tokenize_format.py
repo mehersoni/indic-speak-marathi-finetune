@@ -140,6 +140,7 @@ def build_training_sequence(
 
 if __name__ == "__main__":
     import os
+    import pandas as pd
     from transformers import AutoTokenizer
 
     if sys.platform == "win32":
@@ -148,28 +149,65 @@ if __name__ == "__main__":
     local_repo = os.path.join(os.path.expanduser("~"), "indic-speak-repo")
     tok = AutoTokenizer.from_pretrained(local_repo)
 
-    # Example row matching Marathi dataset schema
-    sample_row = {
-        "utterance": "मॅडम, काही मदत हवी आहे का?",
-        "speaker": "Anagha",
-        "snac_codes": [
-            [3981, 2068, 3981, 295, 2933],
-            [426, 2426, 1736, 1736, 2609, 100, 200, 300, 400, 500],
-            [3909, 3977, 1568, 3422, 3422, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150],
-        ],
+    # Load one real row from the Marathi dataset
+    candidate_paths = [
+        "data_stage_1.parquet",
+        os.path.join(os.path.expanduser("~"), "indic-dataset-cache", "data_stage_1.parquet"),
+    ]
+    dataset_file = None
+    for p in candidate_paths:
+        if os.path.exists(p):
+            dataset_file = p
+            break
+
+    if dataset_file is None:
+        raise FileNotFoundError("Could not find data_stage_1.parquet in local directory or cache")
+
+    df = pd.read_parquet(dataset_file)
+    marathi_df = df[df["language"].str.lower() == "marathi"].dropna(subset=["utterance", "snac_codes"])
+    first_row = marathi_df.iloc[0]
+
+    raw_codes = first_row["snac_codes"]
+    parsed_codes = json.loads(raw_codes) if isinstance(raw_codes, str) else raw_codes
+    c0_len = len(parsed_codes[0])
+    c1_len = len(parsed_codes[1])
+    c2_len = len(parsed_codes[2])
+
+    gender_val = str(first_row.get("gender", "")).lower()
+    speaker_name = "Anagha" if gender_val in ["woman", "female"] else "Chinmay"
+
+    real_sample_row = {
+        "utterance": str(first_row["utterance"]).strip(),
+        "speaker": speaker_name,
+        "snac_codes": parsed_codes,
     }
 
-    seq = build_training_sequence(tok, sample_row)
-    seq_len = len(seq["input_ids"])
+    print(f"Real Row Transcript: {real_sample_row['utterance']}")
+    print(f"Real Row Speaker:    {real_sample_row['speaker']}")
+    print(f"Real Row Codebook Lengths: c0={c0_len}, c1={c1_len}, c2={c2_len} (Ratio 1:2:4 -> {c0_len}:{c1_len}:{c2_len})")
 
-    print(f"Sample Input IDs (first 25): {seq['input_ids'][:25]}")
+    seq = build_training_sequence(tok, real_sample_row)
+    total_tokens = len(seq["input_ids"])
+    prompt_len = sum(1 for label in seq["labels"] if label == -100)
+    audio_tokens_count = c0_len * 7
+    control_target_tokens = 3  # <|start_of_speech|>, <|end_of_speech|>, <|end_of_ai|>
+
+    print(f"\nSample Input IDs (first 25): {seq['input_ids'][:25]}")
     print(f"Sample Labels (first 25):    {seq['labels'][:25]}")
     print(f"Sample Labels (last 10):     {seq['labels'][-10:]}")
-    print(f"Sequence Length: {seq_len}")
+    print(f"\nTotal Tokens Produced: {total_tokens}")
+    print(f"  - Prompt tokens (masked -100):  {prompt_len}")
+    print(f"  - Audio tokens (SNAC frames*7): {audio_tokens_count}")
+    print(f"  - Target control tokens:        {control_target_tokens}")
 
-    # Flag check against Marathi length distribution (p99 is ~1295 audio tokens, max is 2170 audio tokens)
-    TYPICAL_P99_LENGTH = 1400
-    if seq_len > TYPICAL_P99_LENGTH:
-        print(f"WARNING: Sequence length ({seq_len}) exceeds typical p99 threshold ({TYPICAL_P99_LENGTH}).")
+    # Dataset distribution statistics from step 4
+    MARATHI_P99_AUDIO_LENGTH = 1295
+    MARATHI_P99_TOTAL_THRESHOLD = 1400  # P99 audio (1295) + max prompt margin (~105)
+
+    print(f"\nLength Comparison vs Step 4 Marathi Distribution:")
+    print(f"  - Real row total tokens:         {total_tokens}")
+    print(f"  - Marathi dataset p99 threshold: {MARATHI_P99_TOTAL_THRESHOLD} tokens (p99 audio: {MARATHI_P99_AUDIO_LENGTH}, max: 2170)")
+    if total_tokens > MARATHI_P99_TOTAL_THRESHOLD:
+        print(f"  - Status: WARNING (Sequence length {total_tokens} exceeds p99 threshold {MARATHI_P99_TOTAL_THRESHOLD})")
     else:
-        print(f"Length check: OK (within typical range).")
+        print(f"  - Status: PASS ({total_tokens} <= {MARATHI_P99_TOTAL_THRESHOLD})")
