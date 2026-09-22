@@ -375,37 +375,39 @@ def build_report():
     doc.add_paragraph().paragraph_format.space_after = Pt(6)
 
     # --- SECTION 8: EMPIRICAL RESULTS ---
-    add_h1("8. Empirical Results: Baseline (Run 1) vs. Production (Run 2)")
+    add_h1("8. Empirical Results & Multi-Run Progression Matrix (Run 1 → Run 2 → Run 3)")
     add_p(
-        "The project systematically evaluates training convergence and synthesis quality across both experimental runs:"
+        "The project systematically evaluates training convergence and synthesis quality across three progressive experimental runs:"
     )
 
     res_comp_data = [
-        ["Training Samples", "1,200 (Mixed Anagha/Chinmay)", "3,500 (Anagha-only female)"],
-        ["LoRA Target Modules", "q_proj, k_proj, v_proj, o_proj", "q, k, v, o, gate, up, down (Full)"],
-        ["Trainable Parameters", "9,175,040 (0.277%)", "~27,000,000 (~0.820%)"],
-        ["Learning Rate / Warmup", "1e-4 / 10 steps", "3e-5 / 50 steps"],
-        ["Total Optimizer Steps", "450 steps", "1,312 steps"],
-        ["Final Training Loss", "3.902", "<TODO: Fill after Run 2>"],
-        ["Final Validation Loss", "3.835", "<TODO: Fill after Run 2>"],
-        ["Total Training Runtime", "1h 39m 37s (5,978 s)", "<TODO: Fill after Run 2>"],
+        ["Dataset Slice", "1,200 (Mixed 92% F / 8% M)", "3,500 (100% Female / Anagha)", "~6,829 (100% Anagha Corpus)"],
+        ["LoRA Target Modules", "q, k, v, o (Attention only)", "q, k, v, o, gate, up, down", "q, k, v, o, gate, up, down"],
+        ["Trainable Parameters", "9,175,040 (0.277%)", "~27,000,000 (~0.820%)", "~27,000,000 (~0.820%)"],
+        ["Learning Rate / Warmup", "1e-4 / 10 steps", "3e-5 / 50 steps", "3e-5 / 50 steps"],
+        ["Epochs / Optimizer Steps", "3 epochs / 450 steps", "3 epochs / 1,312 steps", "2 epochs / ~1,707 steps"],
+        ["Model Checkpoint Strategy", "Last checkpoint saved", "load_best_model_at_end", "load_best_model_at_end"],
+        ["Sequence Batching", "Standard collator", "group_by_length=True", "group_by_length=True"],
+        ["Final Training Loss", "3.902", "<TODO: Run 2>", "<TODO: Run 3>"],
+        ["Final Validation Loss", "3.835 (eval at Ep 3)", "<TODO: Run 2>", "<TODO: Run 3>"],
+        ["Total Training Runtime", "1h 39m 37s (5,978 s)", "<TODO: ~5h 24m est.>", "<TODO: ~7h 00m est.>"],
     ]
-    t4 = doc.add_table(rows=1, cols=3)
-    format_table(t4, [Inches(2.0), Inches(2.2), Inches(2.3)], ["Metric / Configuration", "Run 1 (Baseline)", "Run 2 (Production)"], res_comp_data)
+    t4 = doc.add_table(rows=1, cols=4)
+    format_table(t4, [Inches(1.8), Inches(1.5), Inches(1.6), Inches(1.6)], ["Feature / Metric", "Run 1 (Baseline)", "Run 2 (Production)", "Run 3 (Full Scale)"], res_comp_data)
     doc.add_paragraph().paragraph_format.space_after = Pt(6)
 
     add_h2("8.1 Audio Generation & Token Duration Comparison")
     add_p(
-        "Evaluation was performed across 4 diverse Marathi benchmark sentences synthesizing both base and fine-tuned models:"
+        "Evaluation was performed across 4 diverse Marathi benchmark sentences synthesizing base and fine-tuned models across all runs:"
     )
     audio_data = [
-        ["00", "नमस्कार, आज आपण विज्ञान विषयाचा अभ्यास करणार आहोत.", "309 (3.75s)", "568 (6.91s)", "<TODO>"],
-        ["01", "मॅडम, काही मदत हवी आहे का?", "323 (3.93s)", "2,520 (30.72s) ⚠️", "<TODO>"],
-        ["02", "महाराष्ट्र हे भारतातील एक पुरोगामी आणि महत्त्वाचे राज्य आहे.", "456 (5.55s)", "<TODO>", "<TODO>"],
-        ["03", "शिक्षण हे मानवी जीवनाचा पाया आहे.", "<TODO>", "<TODO>", "<TODO>"],
+        ["00", "नमस्कार, आज आपण विज्ञान विषयाचा अभ्यास करणार आहोत.", "309 (3.75s)", "568 (6.91s)", "<TODO: Run 2>", "<TODO: Run 3>"],
+        ["01", "मॅडम, काही मदत हवी आहे का?", "323 (3.93s)", "2,520 (30.72s) ⚠️", "<TODO: Run 2>", "<TODO: Run 3>"],
+        ["02", "महाराष्ट्र हे भारतातील एक पुरोगामी आणि महत्त्वाचे राज्य आहे.", "456 (5.55s)", "<TODO: Run 1>", "<TODO: Run 2>", "<TODO: Run 3>"],
+        ["03", "शिक्षण हे मानवी जीवनाचा पाया आहे.", "<TODO: Base>", "<TODO: Run 1>", "<TODO: Run 2>", "<TODO: Run 3>"],
     ]
-    t5 = doc.add_table(rows=1, cols=5)
-    format_table(t5, [Inches(0.4), Inches(2.3), Inches(1.2), Inches(1.3), Inches(1.3)], ["#", "Sentence Text", "Base Model", "Run 1 Finetuned", "Run 2 Finetuned"], audio_data)
+    t5 = doc.add_table(rows=1, cols=6)
+    format_table(t5, [Inches(0.4), Inches(2.2), Inches(0.9), Inches(1.0), Inches(1.0), Inches(1.0)], ["#", "Sentence Text", "Base Model", "Run 1 FT", "Run 2 FT", "Run 3 FT"], audio_data)
     doc.add_paragraph().paragraph_format.space_after = Pt(6)
 
     # --- SECTION 9: BUG TRIAGE ---
