@@ -118,8 +118,12 @@ def run_inference(
         attn_implementation="sdpa",
     ).to(device)
 
-    is_finetuned = adapter_path is not None and os.path.exists(adapter_path)
-    if is_finetuned:
+    if adapter_path is not None:
+        if not os.path.exists(adapter_path):
+            raise FileNotFoundError(
+                f"Specified adapter path '{adapter_path}' does not exist. "
+                "Please run training ('python src/train.py --config configs/marathi_lora.yaml') first to generate the adapter."
+            )
         print(f"Loading LoRA adapter from: {adapter_path}")
         model = PeftModel.from_pretrained(model, adapter_path).to(device)
         name_prefix = "finetuned"
