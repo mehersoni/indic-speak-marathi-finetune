@@ -1,0 +1,38 @@
+# LoRA fine-tuning configuration for Run 1 (Baseline replication):
+# 1,200 samples, attention-only targets (q, k, v, o), lr=1e-4, 3 epochs (450 steps).
+
+model_name_or_path: "bodhan-ai/indic-speak"
+dataset_path: "data_stage_1.parquet"
+output_dir: "outputs/lora_marathi_run1"
+
+train_size: 1200
+val_size: 100
+seed: 42
+
+lora_r: 16
+lora_alpha: 32
+lora_dropout: 0.05
+target_modules:
+  - "q_proj"
+  - "k_proj"
+  - "v_proj"
+  - "o_proj"
+
+batch_size: 1
+gradient_accumulation_steps: 8
+gradient_checkpointing: true
+learning_rate: 0.0001
+num_train_epochs: 3
+warmup_steps: 10
+weight_decay: 0.01
+
+max_sequence_length: 1400
+max_length: 1400
+fp16: true
+
+save_strategy: "steps"
+save_steps: 50
+eval_strategy: "steps"
+eval_steps: 50
+logging_steps: 10
+save_total_limit: 3
