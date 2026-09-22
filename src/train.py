@@ -94,11 +94,6 @@ def train(config_path: str = "configs/marathi_lora.yaml"):
         model.enable_input_require_grads()
         model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
 
-    print("\n--- Model Named Modules ---")
-    for name, mod in model.named_modules():
-        if len(list(mod.children())) == 0:  # print leaf modules
-            print(f"  {name}: {mod.__class__.__name__}")
-
     # Discover and configure LoRA attention target modules
     target_modules = find_linear_attention_modules(model)
     print(f"\nIdentified linear attention target modules: {target_modules}")

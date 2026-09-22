@@ -64,11 +64,15 @@ def generate_speech(
     prompt_ids = build_prompt_tokens(tokenizer, text=text, speaker=speaker)
     input_ids = torch.tensor([prompt_ids], device=device)
 
+    # Heuristic cap: ~30 audio tokens per character is a generous upper bound for Marathi.
+    # Prevents runaway generation on short sentences without cutting off long ones.
+    adaptive_max = min(max_new_tokens, max(280, len(text) * 30))
+
     with torch.no_grad():
         gen_tokens = model.generate(
             input_ids=input_ids,
             attention_mask=torch.ones_like(input_ids),
-            max_new_tokens=max_new_tokens,
+            max_new_tokens=adaptive_max,
             eos_token_id=[END_OF_SPEECH_ID, tokenizer.eos_token_id],
             pad_token_id=tokenizer.eos_token_id,
             do_sample=temperature > 0,
@@ -113,7 +117,7 @@ def run_inference(
     tokenizer = AutoTokenizer.from_pretrained(model_id, token=hf_token)
     model = AutoModelForCausalLM.from_pretrained(
         model_id,
-        torch_dtype=model_dtype,
+        dtype=model_dtype,
         token=hf_token,
         attn_implementation="sdpa",
     ).to(device)
