@@ -108,6 +108,9 @@ def load_marathi_splits(
     # Shuffle deterministically
     shuffled_df = marathi_df.sample(n=len(marathi_df), random_state=seed).reset_index(drop=True)
 
+    if train_size is None or train_size <= 0:
+        train_size = len(shuffled_df) - val_size
+
     total_requested = train_size + val_size
     if len(shuffled_df) < total_requested:
         raise ValueError(f"Dataset has {len(shuffled_df)} rows, fewer than requested {total_requested}")

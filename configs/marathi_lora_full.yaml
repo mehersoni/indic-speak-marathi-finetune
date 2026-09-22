@@ -1,0 +1,34 @@
+# Full Marathi dataset fine-tuning configuration (uses 100% of available Anagha data).
+# Configured for Kaggle T4 GPU runtime envelope (~7 hours for 2 full epochs).
+
+model_name_or_path: "bodhan-ai/indic-speak"
+dataset_path: "data_stage_1.parquet"
+output_dir: "outputs/lora_marathi_full"
+
+train_size: -1  # -1 automatically uses all remaining rows after val_size (~6,829 samples)
+val_size: 100
+seed: 42
+
+lora_r: 16
+lora_alpha: 32
+lora_dropout: 0.05
+
+batch_size: 1
+gradient_accumulation_steps: 8
+gradient_checkpointing: true
+learning_rate: 0.00003
+num_train_epochs: 2
+warmup_steps: 50
+weight_decay: 0.01
+
+# Real p99 sequence length measured across the Marathi dataset (not a default)
+max_sequence_length: 1400
+max_length: 1400
+fp16: true
+
+save_strategy: "steps"
+save_steps: 100
+eval_strategy: "steps"
+eval_steps: 100
+logging_steps: 10
+save_total_limit: 3
