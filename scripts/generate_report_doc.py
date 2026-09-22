@@ -91,6 +91,25 @@ def format_table(tbl, col_widths, headers, data, header_bg="1E3A8A"):
                 r.font.color.rgb = RGBColor(30, 41, 59)
 
 
+def embed_figure(doc, img_path: str, caption: str, width=Inches(6.2)):
+    if os.path.exists(img_path):
+        p_img = doc.add_paragraph()
+        p_img.paragraph_format.space_before = Pt(8)
+        p_img.paragraph_format.space_after = Pt(2)
+        p_img.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        run = p_img.add_run()
+        run.add_picture(img_path, width=width)
+
+        p_cap = doc.add_paragraph()
+        p_cap.paragraph_format.space_after = Pt(10)
+        p_cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        r_cap = p_cap.add_run(caption)
+        r_cap.font.name = "Arial"
+        r_cap.font.size = Pt(8.5)
+        r_cap.font.italic = True
+        r_cap.font.color.rgb = RGBColor(100, 116, 139)
+
+
 def build_report():
     doc = docx.Document()
 
@@ -233,6 +252,7 @@ def build_report():
         "  • Run 2 Split (3,500 utterances @ ~4.5s avg): 3,500 × 4.5s = 15,750 seconds ≈ 4.37 hours of clean Anagha audio (>14x the 15–20 min baseline).\n"
         "  • Run 3 Split (6,832 utterances @ ~4.5s avg): 6,832 × 4.5s = 30,744 seconds ≈ 8.54 hours of clean Anagha audio (>28x the 15–20 min baseline)."
     )
+    embed_figure(doc, "figures/architecture_pipeline.png", "Figure 1: Indic-Speak End-to-End Multimodal TTS Architecture & LoRA Adaptations.")
 
     # --- SECTION 3: DATASET DEEP DIVE ---
     add_h1("3. Dataset Deep Dive & Preprocessing Pipeline")
@@ -263,6 +283,7 @@ def build_report():
     t1 = doc.add_table(rows=1, cols=4)
     format_table(t1, [Inches(1.8), Inches(1.0), Inches(1.1), Inches(2.6)], ["Dataset Slice", "Sample Count", "Percentage", "Description / Role"], d_table_data)
     doc.add_paragraph().paragraph_format.space_after = Pt(6)
+    embed_figure(doc, "figures/dataset_distribution.png", "Figure 2: Marathi Speech Sequence Length Distribution (Left) and Gender/Speaker Filtering Breakdown (Right).")
 
     # --- SECTION 4: STRATEGIC DECISIONS ---
     add_h1("4. Strategic Decisions & Theoretical Rationale")
@@ -425,6 +446,7 @@ def build_report():
     t4 = doc.add_table(rows=1, cols=4)
     format_table(t4, [Inches(1.8), Inches(1.5), Inches(1.6), Inches(1.6)], ["Feature / Metric", "Run 1 (Baseline)", "Run 2 (Production)", "Run 3 (Full Scale)"], res_comp_data)
     doc.add_paragraph().paragraph_format.space_after = Pt(6)
+    embed_figure(doc, "figures/experimental_progression.png", "Figure 3: Multi-Run Progression Matrix: Validation Loss Convergence (Left) and Trainable LoRA Parameters (Right).")
 
     add_h2("8.1 Audio Generation & Token Duration Comparison")
     add_p(
@@ -439,6 +461,7 @@ def build_report():
     t5 = doc.add_table(rows=1, cols=6)
     format_table(t5, [Inches(0.4), Inches(2.2), Inches(0.9), Inches(1.0), Inches(1.0), Inches(1.0)], ["#", "Sentence Text", "Base Model", "Run 1 FT", "Run 2 FT", "Run 3 FT"], audio_data)
     doc.add_paragraph().paragraph_format.space_after = Pt(6)
+    embed_figure(doc, "figures/run2_loss_curve.png", "Figure 4: Run 2 Step-by-Step Training & Validation Loss Convergence (1,314 Steps, 3,500 Samples).")
 
     add_h2("8.2 Acoustic Quality & Signal Metrics")
     add_p(
@@ -455,21 +478,9 @@ def build_report():
     doc.add_paragraph().paragraph_format.space_after = Pt(6)
 
     # Embed Visual Figures
-    figures_to_embed = [
-        ("figures/run2_loss_curve.png", "Figure 1: Run 2 Training and Validation Loss Convergence (1,314 steps, 3,500 samples)."),
-        ("figures/waveform_comparison.png", "Figure 2: Waveform Amplitude Comparison: Base Model (left) vs LoRA Fine-Tuned Run 2 (right)."),
-        ("figures/spectrogram_comparison.png", "Figure 3: Mel-Scale Spectrogram Energy Distribution (Base vs LoRA Fine-Tuned)."),
-    ]
-    for fig_path, caption in figures_to_embed:
-        if os.path.exists(fig_path):
-            doc.add_paragraph().paragraph_format.space_after = Pt(2)
-            doc.add_picture(fig_path, width=Inches(6.2))
-            p_cap = doc.add_paragraph(caption)
-            p_cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            p_cap.runs[0].font.size = Pt(8.5)
-            p_cap.runs[0].font.italic = True
-            p_cap.runs[0].font.color.rgb = RGBColor(100, 116, 139)
-            doc.add_paragraph().paragraph_format.space_after = Pt(6)
+    embed_figure(doc, "figures/waveform_comparison.png", "Figure 5: Time-Domain Waveform Amplitude Comparison: Base Model (left) vs LoRA Fine-Tuned Run 2 (right).")
+    embed_figure(doc, "figures/spectrogram_comparison.png", "Figure 6: Mel-Scale Spectrogram Energy Distribution (Base vs LoRA Fine-Tuned).")
+    embed_figure(doc, "figures/acoustic_metrics_comparison.png", "Figure 7: Synthesized Speech Duration (Left) and RMS Signal Energy (Right) Across Sentences 00–03.")
 
     # --- SECTION 9: BUG TRIAGE ---
     add_h1("9. Comprehensive Bug Triage & Root-Cause Analysis")
