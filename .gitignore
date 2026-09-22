@@ -17,3 +17,6 @@ kaggle.json
 # Outputs directory (keep outputs/examples)
 outputs/*
 !outputs/examples/
+
+# Jupyter Notebooks (local execution/Kaggle)
+*.ipynb
