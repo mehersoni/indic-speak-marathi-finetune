@@ -63,8 +63,12 @@ def codes_to_audio_tokens(codes: list[list[int]] | list[torch.Tensor] | list[np.
 
 def audio_tokens_to_codes(audio_tokens: list[int], device: str = "cpu") -> list[torch.Tensor]:
     """Converts flat 7-token interleaved audio token IDs back to 3 SNAC codebook tensors."""
+    start_idx = 0
+    while start_idx < len(audio_tokens) and not (AUDIO_TOKEN_BASE <= audio_tokens[start_idx] <= AUDIO_TOKEN_END):
+        start_idx += 1
+
     audio = []
-    for t in audio_tokens:
+    for t in audio_tokens[start_idx:]:
         if not (AUDIO_TOKEN_BASE <= t <= AUDIO_TOKEN_END):
             break
         audio.append(t)
@@ -76,7 +80,11 @@ def audio_tokens_to_codes(audio_tokens: list[int], device: str = "cpu") -> list[
     a = np.array(audio[: n_frames * NUM_CODEBOOKS], dtype=np.int32).reshape(n_frames, NUM_CODEBOOKS)
     offsets = AUDIO_TOKEN_BASE + np.arange(NUM_CODEBOOKS, dtype=np.int32) * CODEBOOK_SIZE
     a = a - offsets
+    a = a[np.all((a >= 0) & (a < CODEBOOK_SIZE), axis=1)]
+    if a.shape[0] == 0:
+        raise ValueError("No in-range SNAC frames found")
 
+    n_frames = a.shape[0]
     c0 = torch.from_numpy(a[:, 0].copy()).long().unsqueeze(0).to(device)
 
     c1_arr = np.empty(n_frames * 2, dtype=np.int32)

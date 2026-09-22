@@ -40,7 +40,8 @@ def load_vocos_decoder(model_path: str, device: str = "cpu"):
         ckpt_path = str(local_pt)
     else:
         from huggingface_hub import hf_hub_download
-        ckpt_path = hf_hub_download(repo_id=model_path, filename="vocos/best.pt", token=os.environ.get("HF_TOKEN"))
+        repo_id = "bodhan-ai/indic-speak" if os.path.isdir(model_path) else model_path
+        ckpt_path = hf_hub_download(repo_id=repo_id, filename="vocos/best.pt", token=os.environ.get("HF_TOKEN"))
 
     from src.vocos.load import load_vocos
     return load_vocos(ckpt_path, device=device)
