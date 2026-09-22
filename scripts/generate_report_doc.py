@@ -389,17 +389,17 @@ def build_report():
     )
 
     res_comp_data = [
-        ["Dataset Slice", "1,200 (Mixed 92% F / 8% M)", "3,500 (100% Female / Anagha)", "~6,829 (100% Anagha Corpus)"],
+        ["Dataset Slice", "1,200 (Mixed 92% F / 8% M)", "3,500 (100% Female / Anagha)", "6,832 train + 100 val (6,932 total)"],
         ["LoRA Target Modules", "q, k, v, o (Attention only)", "q, k, v, o, gate, up, down", "q, k, v, o, gate, up, down"],
-        ["Trainable Parameters", "9,175,040 (0.277%)", "~27,000,000 (~0.820%)", "~27,000,000 (~0.820%)"],
+        ["Trainable Parameters", "9,175,040 (0.2772%)", "24,313,856 (0.7312%)", "24,313,856 (0.7312%)"],
         ["Learning Rate / Warmup", "1e-4 / 10 steps", "3e-5 / 50 steps", "3e-5 / 50 steps"],
-        ["Epochs / Optimizer Steps", "3 epochs / 450 steps", "3 epochs / 1,314 steps", "2 epochs / ~1,707 steps"],
+        ["Epochs / Optimizer Steps", "3 epochs / 450 steps", "3 epochs / 1,314 steps", "2 epochs / 1,708 steps"],
         ["Model Checkpoint Strategy", "Last checkpoint saved", "load_best_model_at_end", "load_best_model_at_end"],
         ["Sequence Batching", "Standard collator", "group_by_length=True", "group_by_length=True"],
         ["Final Training Loss", "3.902", "3.681 – 3.690 (-0.22)", "<TODO: Run 3>"],
         ["Final Validation Loss", "3.835 (eval at Ep 3)", "3.698 (at Ep 2.4 / Step 1,050)", "<TODO: Run 3>"],
-        ["Step Throughput", "13.47 s/it", "10.74 – 12.03 s/it", "~12.00 s/it est."],
-        ["Total Training Runtime", "1h 39m 37s (5,978 s)", "~4h 35m (Live in progress)", "<TODO: ~5h 41m est.>"],
+        ["Step Throughput", "13.47 s/it", "10.74 – 12.03 s/it", "~11.50 s/it est."],
+        ["Total Training Runtime", "1h 39m 37s (5,978 s)", "~4h 35m (Live in progress)", "<TODO: ~5h 28m est.>"],
     ]
     t4 = doc.add_table(rows=1, cols=4)
     format_table(t4, [Inches(1.8), Inches(1.5), Inches(1.6), Inches(1.6)], ["Feature / Metric", "Run 1 (Baseline)", "Run 2 (Production)", "Run 3 (Full Scale)"], res_comp_data)
