@@ -18,7 +18,7 @@ gradient_accumulation_steps: 8
 gradient_checkpointing: true
 learning_rate: 0.0001
 num_train_epochs: 3
-warmup_ratio: 0.05
+warmup_steps: 10
 weight_decay: 0.01
 
 # Real p99 sequence length measured across the Marathi dataset (not a default)

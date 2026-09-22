@@ -8,6 +8,8 @@ import os
 from pathlib import Path
 import sys
 from typing import Any
+
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 import torch
 from transformers import (
     AutoModelForCausalLM,
@@ -83,13 +85,14 @@ def train(config_path: str = "configs/marathi_lora.yaml"):
     # Use fp16 precision for Kaggle T4 compatibility (no native bf16 support on T4)
     model = AutoModelForCausalLM.from_pretrained(
         model_load_path,
-        torch_dtype=torch.float16,
+        dtype=torch.float16,
         token=hf_token,
         attn_implementation="sdpa",
     )
 
     if cfg.get("gradient_checkpointing", True):
         model.enable_input_require_grads()
+        model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
 
     print("\n--- Model Named Modules ---")
     for name, mod in model.named_modules():
@@ -139,9 +142,10 @@ def train(config_path: str = "configs/marathi_lora.yaml"):
         per_device_eval_batch_size=cfg.get("batch_size", 1),
         gradient_accumulation_steps=cfg.get("gradient_accumulation_steps", 8),
         gradient_checkpointing=cfg.get("gradient_checkpointing", True),
+        gradient_checkpointing_kwargs={"use_reentrant": False},
         num_train_epochs=cfg.get("num_train_epochs", 3),
         weight_decay=float(cfg.get("weight_decay", 0.01)),
-        warmup_ratio=float(cfg.get("warmup_ratio", 0.05)),
+        warmup_steps=int(cfg.get("warmup_steps", 10)),
         fp16=cfg.get("fp16", True),
         bf16=False,
         save_strategy=cfg.get("save_strategy", "steps"),
@@ -151,6 +155,7 @@ def train(config_path: str = "configs/marathi_lora.yaml"):
         logging_steps=cfg.get("logging_steps", 10),
         save_total_limit=cfg.get("save_total_limit", 3),
         seed=cfg.get("seed", 42),
+        dataloader_pin_memory=False,
         report_to="none",
     )
 
