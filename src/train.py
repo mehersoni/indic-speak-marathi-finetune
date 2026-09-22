@@ -167,8 +167,18 @@ def train(config_path: str = "configs/marathi_lora.yaml"):
         data_collator=data_collator,
     )
 
+    # Check for existing checkpoints to automatically resume interrupted training
+    output_path = Path(training_args.output_dir)
+    checkpoints = sorted(
+        [d for d in output_path.glob("checkpoint-*") if d.is_dir()],
+        key=lambda x: int(x.name.split("-")[-1]) if x.name.split("-")[-1].isdigit() else 0,
+    )
+    resume_from_checkpoint = str(checkpoints[-1]) if checkpoints else None
+    if resume_from_checkpoint:
+        print(f"Resuming training from checkpoint: {resume_from_checkpoint}")
+
     print("\nStarting LoRA fine-tuning...")
-    trainer.train()
+    trainer.train(resume_from_checkpoint=resume_from_checkpoint)
 
     final_output_dir = Path(training_args.output_dir) / "final_adapter"
     final_output_dir.mkdir(parents=True, exist_ok=True)
