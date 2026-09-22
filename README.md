@@ -13,7 +13,7 @@ LoRA fine-tuning pipeline for Marathi speech generation on `bodhan-ai/indic-spea
 
 - **Base Model**: `bodhan-ai/indic-speak`
 - **Underlying Architecture**: `LlamaForCausalLM` (Llama-3.2-3B base, 28 hidden layers, hidden dimension 3072, 24 attention heads, 8 KV heads)
-- **Total Parameters**: `3,300,928,512` (3.30B parameters)
+- **Total Parameters**: `3,325,242,368` (3.33B parameters, including 28,672 expanded audio vocabulary tokens)
 - **Vocabulary Size**: `156,960`
   - Text BPE range: `0 – 127,999` (128,000 Llama-3 BPE tokens)
   - Stock Llama-3 specials: `128,000 – 128,255`
@@ -77,7 +77,7 @@ LoRA fine-tuning pipeline for Marathi speech generation on `bodhan-ai/indic-spea
   - Rank ($r$): `16`
   - Alpha ($\alpha$): `32`
   - Dropout: `0.05`
-  - Trainable parameters: `9,175,040` / `3,310,103,552` (0.2772% of base model weights)
+  - Trainable parameters: `9,175,040` / `3,325,242,368` (0.2759% of base model weights)
 - **Compute Configuration (for 16GB NVIDIA T4 GPU)**:
   - Precision: `fp16: true` (`bf16: false` — T4 lacks native bfloat16 hardware support)
   - Batch size per device: `1`
