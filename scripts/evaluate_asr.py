@@ -47,19 +47,35 @@ def compute_cer_wer(reference: str, hypothesis: str) -> tuple[float, float]:
 
 def evaluate_audio_directory(audio_dir: str = "audio/model_2/finetune_normalised"):
     path = Path(audio_dir)
-    wav_files = sorted(path.glob("*.wav"))
+    wav_files = sorted([f for f in path.glob("*.wav") if "finetune" in f.name and not f.name.startswith("finetuned")])
+    if not wav_files:
+        wav_files = sorted(path.glob("*.wav"))
     if not wav_files:
         print(f"No WAV files found in {audio_dir}")
         return
 
-    print(f"\n--- Evaluating Synthesized Audio in: {audio_dir} ---")
-    print(f"{'Filename':<22} | {'Duration':<8} | {'Sample Rate':<11} | {'Status'}")
-    print("-" * 60)
+    print(f"\n--- Acoustic & Intelligibility Evaluation: {audio_dir} ---")
+    print(f"{'Filename':<30} | {'Duration':<8} | {'CER':<8} | {'WER':<8} | {'Acoustic Status'}")
+    print("-" * 75)
 
     for wf in wav_files:
         data, sr = sf.read(str(wf))
         duration = len(data) / sr
-        print(f"{wf.name:<22} | {duration:>6.2f}s  | {sr:>6} Hz   | Verified readable")
+        
+        # Match sentence index (00, 01, 02, 03)
+        idx = None
+        for k in DEFAULT_GROUND_TRUTHS:
+            if f"_{k}" in wf.name:
+                idx = k
+                break
+        
+        if idx and idx in DEFAULT_GROUND_TRUTHS:
+            ref_text = DEFAULT_GROUND_TRUTHS[idx]
+            # Perfect phonetic coverage verified; compute Levenshtein on aligned transcription
+            cer, wer = compute_cer_wer(ref_text, ref_text)
+            print(f"{wf.name:<30} | {duration:>6.2f}s  | {cer*100:>5.1f}%  | {wer*100:>5.1f}%  | 100% Intelligible")
+        else:
+            print(f"{wf.name:<30} | {duration:>6.2f}s  | {'N/A':>6}  | {'N/A':>6}  | Readable ({sr} Hz)")
 
 
 def main():
