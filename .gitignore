@@ -21,6 +21,7 @@ marathi_tts_all_models/
 # Archives & Document Deliverables
 *.zip
 *.docx
+Marathi_TTS_Submission_Meher_Soni/
 
 # Agent instructions & workspace metadata
 AGENTS.md

@@ -133,8 +133,7 @@ def build_report():
 
     sub_p = doc.add_paragraph()
     sub_p.paragraph_format.space_before = Pt(0)
-    sub_p.paragraph_format.space_after = Pt(14)
-    s_run = sub_p.add_run("AI4Bharat Submission — Comprehensive Technical Architecture & Multi-Run Empirical Report")
+    s_run = sub_p.add_run("Comprehensive Technical Architecture & Multi-Run Empirical Report")
     s_run.font.name = "Arial"
     s_run.font.size = Pt(12)
     s_run.font.color.rgb = RGBColor(71, 85, 105)
@@ -237,7 +236,7 @@ def build_report():
         "with n_fft=1024 and hop_length=256."
     )
 
-    add_h2("2.4 Alignment with AI4Bharat Indic-TTS Standards (Parler-TTS vs. LLaMA-SNAC)")
+    add_h2("2.4 Alignment with Open-Source Indic-TTS Standards (Parler-TTS vs. LLaMA-SNAC)")
     add_p(
         "In the open-source Indic speech ecosystem, two primary architectures have emerged for regional language adaptation:\n"
         "1. Diffusion / T5-Conditioned Architecture (e.g. Indic-Parler-TTS): Utilizes Descript Audio Codec (DAC) with cross-attention text encodings and continuous acoustic token generation.\n"
@@ -247,7 +246,7 @@ def build_report():
 
     add_h2("2.5 Audio Duration & Training Corpus Volume (Math vs. Guidelines)")
     add_p(
-        "AI4Bharat guidelines establish that single-speaker voice adaptation requires a minimum of 15 to 20 minutes of clean, transcribed audio. "
+        "Empirical speech engineering guidelines establish that single-speaker voice adaptation requires a minimum of 15 to 20 minutes of clean, transcribed audio. "
         "Our filtered Marathi dataset far exceeds this minimum threshold:\n"
         "  • Run 2 Split (3,500 utterances @ ~4.5s avg): 3,500 × 4.5s = 15,750 seconds ≈ 4.37 hours of clean Anagha audio (>14x the 15–20 min baseline).\n"
         "  • Run 3 Split (6,832 utterances @ ~4.5s avg): 6,832 × 4.5s = 30,744 seconds ≈ 8.54 hours of clean Anagha audio (>28x the 15–20 min baseline)."
