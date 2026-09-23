@@ -8,9 +8,9 @@ and the 50-sentence held-out Indic ASR benchmark for direct inclusion in reports
 
 This document compiles all quantitative results, training parameters, acoustic measurements, and ASR benchmark evaluations across all four model configurations:
 - **Base Model**: `bodhan-ai/indic-speak` (3.3B multilingual baseline)
-- **Model 1**: 1,200 samples, Attention-only LoRA (`q, k, v, o`), lr = 1e-4, 1 epoch
-- **Model 2**: 3,500 samples, Attention + SwiGLU MLP LoRA, lr = 3e-5, 1 epoch
-- **Model 3**: 6,829 samples (100% Anagha corpus), Attention + SwiGLU MLP LoRA, lr = 3e-5, 2 epochs
+- **Model 1**: 1,200 samples, Attention-only LoRA (`q, k, v, o`), lr = 1e-4, 3 epochs (450 steps)
+- **Model 2**: 3,500 samples, Attention + SwiGLU MLP LoRA, lr = 3e-5, 3 epochs (1,314 steps)
+- **Model 3**: 6,829 samples (100% Anagha corpus), Attention + SwiGLU MLP LoRA, lr = 3e-5, 2 epochs (1,708 steps)
 
 ---
 
@@ -25,14 +25,14 @@ This document compiles all quantitative results, training parameters, acoustic m
 | **LoRA Rank ($r$) / Alpha ($\alpha$)** | N/A | $r = 16, \alpha = 32$ | $r = 16, \alpha = 32$ | **$r = 16, \alpha = 32$** |
 | **Trainable Parameters** | 0 (Frozen) | 9,175,040 (0.276%) | 24,313,856 (0.731%) | **24,313,856 (0.731%)** |
 | **Learning Rate** | N/A | $1 \times 10^{-4}$ | $3 \times 10^{-5}$ | **$3 \times 10^{-5}$** |
-| **Warmup Steps** | N/A | 10 steps | 50 steps | **50 steps** |
+| **Warmup Steps** | N/A | 10 steps (2.2% of run) | 50 steps (3.8% of run) | **50 steps (2.9% of run)** |
 | **Epochs / Total Steps** | N/A | 3 epochs / 450 steps | 3 epochs / 1,314 steps | **2 epochs / 1,708 steps** |
-| **Batch Size & Accumulation** | N/A | batch 2, accum 4 (eff = 8) | batch 2, accum 4 (eff = 8) | **batch 2, accum 4 (eff = 8)** |
+| **Batch Size & Accumulation** | N/A | batch 1, accum 8 (eff = 8) | batch 1, accum 8 (eff = 8) | **batch 1, accum 8 (eff = 8)** |
 | **Hardware** | N/A | Kaggle T4 GPU (16 GB) | Kaggle T4 GPU (16 GB) | **Kaggle T4 GPU (16 GB)** |
-| **Wall-Clock Runtime** | N/A | 1h 39m 37s | 4h 08m 12s | **6h 35m 12s (6.58 hrs)** |
+| **Wall-Clock Runtime** | N/A | 1h 39m 37s | 4h 41m 04s (16,864s) | **6h 35m 12s (6.58 hrs)** |
 | **Initial Training Loss** | N/A | 3.942 | 4.392 | **4.351** |
-| **Final Training Loss** | N/A | 3.902 | 3.681 | **3.551** |
-| **Final Validation Loss** | N/A | 3.835 | 3.698 | **3.645** |
+| **Final Training Loss** | N/A | 3.902 | 3.700 (overall: 3.799) | **3.551** |
+| **Final Validation Loss** | N/A | 3.835 | 3.693 (best restored) | **3.645 (best restored)** |
 
 
 ### 1.2 Exact Hyperparameters & Reproducibility Specifications
@@ -51,8 +51,8 @@ This document compiles all quantitative results, training parameters, acoustic m
 | | Peak learning rate | $1 \times 10^{-4}$ | $3 \times 10^{-5}$ | $3 \times 10^{-5}$ |
 | | Learning rate schedule | Linear decay | Linear decay | Linear decay |
 | | Warmup steps | 10 steps (2.2% of run) | 50 steps (3.8% of run) | 50 steps (2.9% of run) |
-| **Batching & Sequence** | Per-device batch size | 2 | 2 | 2 |
-| | Gradient accumulation steps | 4 (effective batch = 8) | 4 (effective batch = 8) | 4 (effective batch = 8) |
+| **Batching & Sequence** | Per-device batch size | 1 | 1 | 1 |
+| | Gradient accumulation steps | 8 (effective batch = 8) | 8 (effective batch = 8) | 8 (effective batch = 8) |
 | | Max sequence length | 1,400 tokens | 1,400 tokens | 1,400 tokens |
 | | Sequence batch grouping | Standard collator | `group_by_length=True` | `group_by_length=True` |
 | **Inference Generation** | Sampling strategy | `temperature=0.6, top_p=0.9` | `temperature=0.6, top_p=0.9` | `temperature=0.6, top_p=0.9` |
@@ -119,31 +119,31 @@ Detailed metrics on the four canonical test prompts evaluated under identical in
 
 | # | Sentence Text | Category | Base Model | Model 1 | Model 2 | Model 3 |
 |---|---|---|---|---|---|---|
-| **00** | नमस्कार, आज आपण विज्ञान विषयाचा अभ्यास करणार आहोत. | Declarative / Standard | 309 tokens (3.75s) | 489 tokens (5.97s) | 519 tokens (6.14s) | **495 tokens (5.88s)** |
-| **01** | मॅडम, काही मदत हवी आहे का? | Short Interrogative | 323 tokens (3.93s) | 364 tokens (4.44s) | 288 tokens (3.50s) | **275 tokens (3.34s)** |
-| **02** | महाराष्ट्र हे भारतातील एक पुरोगामी आणि महत्त्वाचे राज्य आहे. | Compound Clause | 456 tokens (5.55s) | 678 tokens (8.28s) | 605 tokens (7.34s) | **560 tokens (6.78s)** |
-| **03** | शिक्षण हे मानवी जीवनाचा पाया आहे. | Formal Aphorism | 260 tokens (3.16s) | 342 tokens (4.18s) | 295 tokens (3.58s) | **282 tokens (3.42s)** |
+| **00** | नमस्कार, आज आपण विज्ञान विषयाचा अभ्यास करणार आहोत. | Declarative / Standard | 309 tokens (3.75s) | 489 tokens (5.97s) | 505 tokens (6.14s) | **456 tokens (5.55s)** |
+| **01** | मॅडम, काही मदत हवी आहे का? | Short Interrogative | 323 tokens (3.93s) | 364 tokens (4.44s) | 288 tokens (3.50s) | **294 tokens (3.58s)** |
+| **02** | महाराष्ट्र हे भारतातील एक पुरोगामी आणि महत्त्वाचे राज्य आहे. | Compound Clause | 456 tokens (5.55s) | 678 tokens (8.28s) | 603 tokens (7.34s) | **519 tokens (6.31s)** |
+| **03** | शिक्षण हे मानवी जीवनाचा पाया आहे. | Formal Aphorism | 260 tokens (3.16s) | 342 tokens (4.18s) | 295 tokens (3.58s) | **337 tokens (4.10s)** |
 
 ### 3.2 Acoustic Energy, Peak Amplitude & Relative Gain
 
 | Sentence | Metric | Base Model | Model 1 | Model 2 | Model 3 |
 |---|---|---|---|---|---|
-| **Sentence 00** | Duration (s) | 3.75s | 5.97s (1.59x) | 6.14s (1.64x) | **5.88s (1.57x)** |
-| | RMS Power | 0.0699 | 0.0886 | 0.1997 | **0.2014** |
-| | Peak Amplitude | 0.3446 | 0.4497 | 0.9142 | **0.9000 (norm)** |
-| | Relative Gain (dB) | 0.0 dB | +2.1 dB | +9.1 dB | **+9.2 dB** |
-| **Sentence 01** | Duration (s) | 3.93s | 4.44s (1.13x) | 3.50s (0.89x) | **3.34s (0.85x)** |
-| | RMS Power | 0.0576 | 0.0551 | 0.0600 | **0.0642** |
-| | Peak Amplitude | 0.3990 | 0.4701 | 0.4701 | **0.9000 (norm)** |
-| | Relative Gain (dB) | 0.0 dB | -0.4 dB | +0.4 dB | **+0.9 dB** |
-| **Sentence 02** | Duration (s) | 5.55s | 8.28s (1.49x) | 7.34s (1.32x) | **6.78s (1.22x)** |
-| | RMS Power | 0.0704 | 0.0410 | 0.0222 | **0.0489** |
-| | Peak Amplitude | 0.3862 | 0.2514 | 0.1426 | **0.9000 (norm)** |
-| | Relative Gain (dB) | 0.0 dB | -4.7 dB | -10.0 dB | **-3.2 dB** |
-| **Sentence 03** | Duration (s) | 3.16s | 4.18s (1.32x) | 3.58s (1.13x) | **3.42s (1.08x)** |
-| | RMS Power | 0.0757 | 0.0380 | 0.0260 | **0.0512** |
-| | Peak Amplitude | 0.4164 | 0.2215 | 0.1555 | **0.9000 (norm)** |
-| | Relative Gain (dB) | 0.0 dB | -6.0 dB | -9.3 dB | **-3.4 dB** |
+| **Sentence 00** | Duration (s) | 3.75s | 5.97s (1.59x) | 6.14s (1.64x) | **5.55s (1.48x)** |
+| | RMS Power | 0.0699 | 0.1863 | 0.1997 | **0.2306** |
+| | Peak Amplitude | 0.3446 | 0.7893 | 0.9142 | **0.9000 (norm)** |
+| | Relative Gain (dB) | 0.0 dB | +8.5 dB | +9.1 dB | **+10.4 dB** |
+| **Sentence 01** | Duration (s) | 3.93s | 4.44s (1.13x) | 3.50s (0.89x) | **3.58s (0.91x)** |
+| | RMS Power | 0.0576 | 0.0551 | 0.0600 | **0.1103** |
+| | Peak Amplitude | 0.3990 | 0.2626 | 0.4701 | **0.9000 (norm)** |
+| | Relative Gain (dB) | 0.0 dB | -0.4 dB | +0.3 dB | **+5.6 dB** |
+| **Sentence 02** | Duration (s) | 5.55s | 8.28s (1.49x) | 7.34s (1.32x) | **6.31s (1.14x)** |
+| | RMS Power | 0.0704 | 0.0880 | 0.0222 | **0.1830** |
+| | Peak Amplitude | 0.3862 | 0.5948 | 0.1426 | **0.9000 (norm)** |
+| | Relative Gain (dB) | 0.0 dB | +1.9 dB | -10.0 dB | **+8.3 dB** |
+| **Sentence 03** | Duration (s) | 3.16s | 4.18s (1.32x) | 3.58s (1.14x) | **4.10s (1.30x)** |
+| | RMS Power | 0.0757 | 0.0336 | 0.0260 | **0.2328** |
+| | Peak Amplitude | 0.4164 | 0.1949 | 0.1555 | **0.9000 (norm)** |
+| | Relative Gain (dB) | 0.0 dB | -7.1 dB | -9.3 dB | **+9.8 dB** |
 
 ---
 
@@ -211,7 +211,7 @@ A manual comparative listening test was conducted on 10 held-out Marathi sentenc
 ### 7.1 Operational Risk Reflection: Ephemeral Cloud Containers
 An important operational lesson was the management of training state in ephemeral cloud environments:
 - During an early attempt of Run 1, an unexpected Kaggle container preemption wiped trained adapter weights because checkpoints were stored exclusively within the local `/kaggle/working/` virtual filesystem.
-- Although Run 2 (4h 08m) and Run 3 (6h 35m) completed and their best checkpoints were successfully extracted, running a 6.5-hour training session on a free cloud VM without automated off-node checkpoint streaming represented a notable operational vulnerability.
+- Although Run 2 (4h 41m) and Run 3 (6h 35m) completed and their best checkpoints were successfully extracted, running a 6.5-hour training session on a free cloud VM without automated off-node checkpoint streaming represented a notable operational vulnerability.
 - In production workflows, automated streaming to Hugging Face Hub (via `model.push_to_hub()`) or Google Drive / S3 sync hooks on each evaluation step should be established *prior* to launching multi-hour runs, rather than treated as a post-training artifact export.
 
 ### 7.2 Codebase Structure & GitHub Repository
@@ -221,13 +221,14 @@ An important operational lesson was the management of training state in ephemera
 indic-speak-marathi-finetune/
 ├── configs/
 │   ├── eval_50_sentences.json        # 50 held-out sentences for objective ASR evaluation
+│   ├── marathi_lora_run1.yaml        # Run 1 baseline config (1,200 samples, 3 epochs, lr=1e-4)
 │   ├── marathi_lora.yaml             # Run 2 configuration (3,500 samples, 3 epochs, lr=3e-5)
 │   └── marathi_lora_full.yaml        # Run 3 configuration (6,829 samples, 2 epochs, lr=3e-5)
 ├── evaluation/
 │   ├── ALL_RESULTS.md                # Master empirical results, tables, and paradox analysis
 │   ├── EVALUATION_REPORT.md          # Multi-model relative evaluation report
 │   └── eval_50_summary_metrics.csv   # Aggregated 50-sentence benchmark metrics
-├── figures/                          # 8 publication-grade plots (ASR, MOS, loss, spectrograms)
+├── figures/                          # 9 publication-grade plots (ASR, MOS, loss, spectrograms)
 ├── MANUAL_EVALUATION/
 │   ├── manifest.csv                  # 10-sentence manual evaluation manifest with user ratings
 │   ├── mos_summary.csv               # Aggregated MOS scores with standard deviations
@@ -244,8 +245,9 @@ indic-speak-marathi-finetune/
 │   ├── train.py                      # PEFT LoRA training loop with Hugging Face Trainer
 │   ├── utils.py                      # Special token IDs, sample rates, and vocabulary constants
 │   └── vocos/                        # Bundled custom Vocos neural vocoder
-├── marathi_finetune_kaggle.ipynb     # Run 2 training and evaluation notebook
-├── marathi_finetune_full_data_kaggle.ipynb # Run 3 full-scale training notebook
+├── marathi_finetune_run1_baseline_kaggle.ipynb # Run 1 baseline training notebook
+├── Model2.ipynb                      # Run 2 training and evaluation notebook
+├── Model3.ipynb                      # Run 3 full-scale training notebook
 ├── Evaluation.ipynb                  # Standalone ASR & subjective evaluation notebook
 └── requirements.txt                  # Pinned Python dependencies
 ```

@@ -360,7 +360,7 @@ def build_report():
         ["LoRA Rank / Alpha / Dropout", "r, alpha, dropout", "r=16, a=32, d=0.05", "r=16, a=32, d=0.05", "r=16, a=32, d=0.05"],
         ["Optimizer & Weight Decay", "AdamW (betas=(0.9, 0.999), eps=1e-8)", "AdamW / 0.01", "AdamW / 0.01", "AdamW / 0.01"],
         ["Peak LR / Warmup", "Learning rate & schedule", "1e-4 / 10 steps (linear)", "3e-5 / 50 steps (linear)", "3e-5 / 50 steps (linear)"],
-        ["Batch Size / Accumulation", "Per-device batch & gradient accum", "2 / 4 (effective=8)", "2 / 4 (effective=8)", "2 / 4 (effective=8)"],
+        ["Batch Size / Accumulation", "Per-device batch & gradient accum", "1 / 8 (effective=8)", "1 / 8 (effective=8)", "1 / 8 (effective=8)"],
         ["Max Sequence Length", "Sequence truncation ceiling", "1,400 tokens", "1,400 tokens", "1,400 tokens"],
         ["Inference Sampling", "Decoding parameters", "T=0.6, p=0.9, k=50", "T=0.6, p=0.9, k=50", "T=0.6, p=0.9, k=50"],
         ["Repetition Penalty", "Low-entropy loop suppression", "1.1", "1.1", "1.1"],
@@ -410,9 +410,9 @@ def build_report():
     add_p(
         "Post-Run-2 analysis revealed that sentences 01–03 all hit their adaptive token cap exactly "
         "(780, 1,800, and 990 tokens respectively) under the initial multiplier of 30, meaning the model entered a repetition loop and never "
-        "predicted <|end_of_speech|>. Only sentence 00 stopped naturally at 519 tokens (cap: 1,500). "
+        "predicted <|end_of_speech|>. Only sentence 00 stopped naturally at 505 tokens (cap: 1,500). "
         "The empirical speech rate from Run 2 data is ~10.4 audio tokens/character. Under the corrected heuristic (multiplier 14 with repetition_penalty=1.1), "
-        "the same three sentences now stop naturally at 288, 605, and 295 tokens — well short of their new caps (364, 840, and 462 tokens) — resolving into clean, natural audio."
+        "the same three sentences now stop naturally at 288, 603, and 295 tokens — well short of their new caps (364, 840, and 462 tokens) — resolving into clean, natural audio."
     )
     add_callout(
         doc,
@@ -430,8 +430,10 @@ def build_report():
         "The project codebase is cleanly structured into modular, single-responsibility components adhering to strict engineering standards:"
     )
     repo_data = [
+        ["configs/marathi_lora_run1.yaml", "Run 1 baseline config: 1,200 samples, 3 epochs, lr=1e-4, warmup=10, attention-only targets."],
         ["configs/marathi_lora.yaml", "Run 2 config: 3,500 samples, 3 epochs, lr=3e-5, warmup=50, load_best_model_at_end, group_by_length."],
         ["configs/marathi_lora_full.yaml", "Run 3 config: ~6,829 samples (100% Anagha), 2 epochs, lr=3e-5, outputs/lora_marathi_full."],
+        ["configs/eval_50_sentences.json", "50 held-out Marathi sentences for objective ASR benchmarking across all 4 models."],
         ["scripts/prepare_dataset.py", "Downloads dataset from Hugging Face Hub, computes sequence length percentiles, and verifies filtering."],
         ["scripts/smoke_test.py", "Runs 5-stage pre-flight checks: model load, forward pass, backward pass, optimizer step, NaN/Inf gradient check."],
         ["scripts/generate_report_doc.py", "Programmatic Word (.docx) report generator constructing complete technical documentation."],
@@ -442,11 +444,13 @@ def build_report():
         ["src/inference.py", "Synthesis entrypoint: loads base model + adapter, builds prompts, runs generation with adaptive token caps, outputs .wav."],
         ["src/utils.py", "Centralized repository constants: special token IDs, sample rates (24kHz), audio token base offset (128,266)."],
         ["src/vocos/load.py & model.py", "Bundled custom Vocos neural vocoder (ConvNeXt-1D + iSTFT head) to synthesize audio without external pip vocos."],
-        ["marathi_finetune_kaggle.ipynb", "Main Kaggle execution notebook (Run 2)."],
-        ["marathi_finetune_full_data_kaggle.ipynb", "Standalone Kaggle execution notebook for full dataset scaling (Run 3)."],
+        ["marathi_finetune_run1_baseline_kaggle.ipynb", "Run 1 baseline Kaggle execution notebook."],
+        ["Model2.ipynb", "Run 2 training and evaluation notebook."],
+        ["Model3.ipynb", "Run 3 full-scale training notebook."],
+        ["Evaluation.ipynb", "Standalone ASR & subjective evaluation notebook."],
     ]
     t3 = doc.add_table(rows=1, cols=2)
-    format_table(t3, [Inches(2.2), Inches(4.3)], ["File Path", "Functional Role in Pipeline"], repo_data)
+    format_table(t3, [Inches(2.4), Inches(4.1)], ["File Path", "Functional Role in Pipeline"], repo_data)
     doc.add_paragraph().paragraph_format.space_after = Pt(6)
 
     # --- SECTION 8: EMPIRICAL RESULTS ---
@@ -456,17 +460,17 @@ def build_report():
     )
 
     res_comp_data = [
-        ["Dataset Slice", "1,200 (Mixed 92% F / 8% M)", "3,500 (100% Female / Anagha)", "6,832 train + 100 val (6,932 total)"],
+        ["Dataset Slice", "1,200 (Mixed 92% F / 8% M)", "3,500 (100% Female / Anagha)", "6,829 train + 100 val (6,929 total)"],
         ["LoRA Target Modules", "q, k, v, o (Attention only)", "q, k, v, o, gate, up, down", "q, k, v, o, gate, up, down"],
         ["Trainable Parameters", "9,175,040 (0.2759%)", "24,313,856 (0.7312%)", "24,313,856 (0.7312%)"],
         ["Learning Rate / Warmup", "1e-4 / 10 steps", "3e-5 / 50 steps", "3e-5 / 50 steps"],
         ["Epochs / Optimizer Steps", "3 epochs / 450 steps", "3 epochs / 1,314 steps", "2 epochs / 1,708 steps"],
         ["Model Checkpoint Strategy", "Last checkpoint saved", "load_best_model_at_end", "load_best_model_at_end"],
         ["Sequence Batching", "Standard collator", "group_by_length=True", "group_by_length=True"],
-        ["Final Training Loss", "3.902", "3.681 (Completed, Step 1,314)", "3.551 (Completed, Step 1,708)"],
-        ["Final Validation Loss", "3.835 (eval at Ep 3)", "3.698 (Best checkpoint restored)", "3.645 (Best checkpoint restored)"],
+        ["Final Training Loss", "3.902", "3.700 (overall: 3.799)", "3.551 (Completed, Step 1,708)"],
+        ["Final Validation Loss", "3.835 (eval at Ep 3)", "3.693 (Best checkpoint restored)", "3.645 (Best checkpoint restored)"],
         ["Step Throughput", "13.47 s/it", "10.74 – 12.03 s/it", "12.03 s/it (actual logged)"],
-        ["Total Training Runtime", "1h 39m 37s (5,978 s)", "4h 08m 12s (Completed)", "6h 35m 12s (Completed)"],
+        ["Total Training Runtime", "1h 39m 37s (5,978 s)", "4h 41m 04s (Completed)", "6h 35m 12s (Completed)"],
     ]
     t4 = doc.add_table(rows=1, cols=4)
     format_table(t4, [Inches(1.8), Inches(1.5), Inches(1.6), Inches(1.6)], ["Feature / Metric", "Run 1 (Baseline)", "Run 2 (Production)", "Run 3 (Full Scale)"], res_comp_data)
@@ -478,10 +482,10 @@ def build_report():
         "Evaluation was performed across 4 diverse Marathi benchmark sentences synthesizing base and fine-tuned models across all runs:"
     )
     audio_data = [
-        ["00", "नमस्कार, आज आपण विज्ञान विषयाचा अभ्यास करणार आहोत.", "309 (3.75s)", "489 (5.97s) ✅", "519 (6.14s) ✅", "495 (5.88s) ✅"],
-        ["01", "मॅडम, काही मदत हवी आहे का?", "323 (3.93s)", "364 (4.44s) ✅*", "288 (3.50s) ✅", "275 (3.34s) ✅"],
-        ["02", "महाराष्ट्र हे भारतातील एक पुरोगामी आणि महत्त्वाचे राज्य आहे.", "456 (5.55s)", "678 (8.28s) ✅", "605 (7.34s) ✅", "560 (6.78s) ✅"],
-        ["03", "शिक्षण हे मानवी जीवनाचा पाया आहे.", "260 (3.16s)", "342 (4.18s) ✅", "295 (3.58s) ✅", "282 (3.42s) ✅"],
+        ["00", "नमस्कार, आज आपण विज्ञान विषयाचा अभ्यास करणार आहोत.", "309 (3.75s)", "489 (5.97s) ✅", "505 (6.14s) ✅", "456 (5.55s) ✅"],
+        ["01", "मॅडम, काही मदत हवी आहे का?", "323 (3.93s)", "364 (4.44s) ✅*", "288 (3.50s) ✅", "294 (3.58s) ✅"],
+        ["02", "महाराष्ट्र हे भारतातील एक पुरोगामी आणि महत्त्वाचे राज्य आहे.", "456 (5.55s)", "678 (8.28s) ✅", "603 (7.34s) ✅", "519 (6.31s) ✅"],
+        ["03", "शिक्षण हे मानवी जीवनाचा पाया आहे.", "260 (3.16s)", "342 (4.18s) ✅", "295 (3.58s) ✅", "337 (4.10s) ✅"],
     ]
     t5 = doc.add_table(rows=1, cols=6)
     format_table(t5, [Inches(0.4), Inches(2.2), Inches(0.9), Inches(1.0), Inches(1.0), Inches(1.0)], ["#", "Sentence Text", "Base Model", "Run 1 FT", "Run 2 FT", "Run 3 FT"], audio_data)

@@ -8,9 +8,9 @@ pacing ratios, and acoustic energy comparisons across all 4 model variants.
 
 This report presents empirical benchmarking results across four model variants:
 1. **Base Model**: `bodhan-ai/indic-speak` (3.3B multilingual baseline, unadapted)
-2. **Model 1**: 1,200 samples, Attention-only LoRA (`q, k, v, o`), lr = 1e-4, 1 epoch
-3. **Model 2**: 3,500 samples, Attention + SwiGLU MLP LoRA, lr = 3e-5, 1 epoch
-4. **Model 3**: 6,829 samples (100% Anagha corpus), Attention + SwiGLU MLP LoRA, lr = 3e-5, 2 epochs
+2. **Model 1**: 1,200 samples, Attention-only LoRA (`q, k, v, o`), lr = 1e-4, 3 epochs (450 steps)
+3. **Model 2**: 3,500 samples, Attention + SwiGLU MLP LoRA, lr = 3e-5, 3 epochs (1,314 steps)
+4. **Model 3**: 6,829 samples (100% Anagha corpus), Attention + SwiGLU MLP LoRA, lr = 3e-5, 2 epochs (1,708 steps)
 
 ---
 
@@ -113,7 +113,7 @@ This divergence stems from the fundamental mechanics of frame-level CTC speech r
 | **LoRA Dropout** | 0.05 | 0.05 | 0.05 |
 | **Optimizer / Weight Decay** | AdamW ($\beta=(0.9, 0.999), \epsilon=10^{-8}$) / 0.01 | AdamW ($\beta=(0.9, 0.999), \epsilon=10^{-8}$) / 0.01 | AdamW ($\beta=(0.9, 0.999), \epsilon=10^{-8}$) / 0.01 |
 | **Peak LR / Warmup** | $1 \times 10^{-4}$ / 10 steps | $3 \times 10^{-5}$ / 50 steps | $3 \times 10^{-5}$ / 50 steps |
-| **Batch Size (Per Device / Accum)** | 2 / 4 (effective = 8) | 2 / 4 (effective = 8) | 2 / 4 (effective = 8) |
+| **Batch Size (Per Device / Accum)** | 1 / 8 (effective = 8) | 1 / 8 (effective = 8) | 1 / 8 (effective = 8) |
 | **Max Sequence Length** | 1,400 tokens | 1,400 tokens | 1,400 tokens |
 | **Inference Sampling** | $T=0.6, p=0.9, k=50$, rep\_pen=1.1 | $T=0.6, p=0.9, k=50$, rep\_pen=1.1 | $T=0.6, p=0.9, k=50$, rep\_pen=1.1 |
 | **Adaptive Token Cap** | $\min(2520, \max(280, L \times 14))$ | $\min(2520, \max(280, L \times 14))$ | $\min(2520, \max(280, L \times 14))$ |
@@ -121,7 +121,7 @@ This divergence stems from the fundamental mechanics of frame-level CTC speech r
 
 ### 6.2 Checkpointing Vulnerability in Cloud Sessions
 - In ephemeral cloud environments (Kaggle T4), storing model checkpoints exclusively within the container filesystem (`/kaggle/working/`) exposes the pipeline to preemption risk.
-- While Run 2 (4h 08m) and Run 3 (6h 35m) completed and their best checkpoints were successfully extracted, running a 6.5-hour training session without automated off-node streaming (`model.push_to_hub()` or external bucket sync) was an operational risk.
+- While Run 2 (4h 41m) and Run 3 (6h 35m) completed and their best checkpoints were successfully extracted, running a 6.5-hour training session without automated off-node streaming (`model.push_to_hub()` or external bucket sync) was an operational risk.
 - For multi-hour training workflows, off-node checkpoint streaming should be wired directly into `TrainerCallback` prior to launch.
 
 ### 6.3 Artifacts and Codebase
