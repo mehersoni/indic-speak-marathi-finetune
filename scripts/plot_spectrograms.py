@@ -23,8 +23,8 @@ fig, axes = plt.subplots(4, 2, figsize=(14, 10), dpi=300, sharex=False)
 fig.suptitle("Waveform Comparison: Base vs LoRA Fine-Tuned (Run 2)", fontsize=14, fontweight="bold", y=0.98)
 
 for idx, (num, text) in enumerate(sentences):
-    base_file = f"outputs/examples/base_{num}.wav"
-    fine_file = f"outputs/examples/finetuned_{num}.wav"
+    base_file = f"audio/model_2/base/base_{num}.wav"
+    fine_file = f"audio/model_2/finetune/finetuned_{num}.wav"
 
     # Base audio
     base_wav, sr_b = sf.read(base_file)
@@ -61,8 +61,8 @@ fig, axes = plt.subplots(2, 2, figsize=(13, 7), dpi=300)
 fig.suptitle("Mel-Scale Spectrogram Comparison: Base vs LoRA Fine-Tuned", fontsize=13, fontweight="bold", y=0.98)
 
 for row_idx, num in enumerate(["00", "01"]):
-    base_file = f"outputs/examples/base_{num}.wav"
-    fine_file = f"outputs/examples/finetuned_{num}.wav"
+    base_file = f"audio/model_2/base/base_{num}.wav"
+    fine_file = f"audio/model_2/finetune/finetuned_{num}.wav"
 
     base_wav, sr_b = sf.read(base_file)
     fine_wav, sr_f = sf.read(fine_file)

@@ -45,7 +45,7 @@ def compute_cer_wer(reference: str, hypothesis: str) -> tuple[float, float]:
     return cer, wer
 
 
-def evaluate_audio_directory(audio_dir: str = "outputs/examples"):
+def evaluate_audio_directory(audio_dir: str = "audio/model_2/finetune_normalised"):
     path = Path(audio_dir)
     wav_files = sorted(path.glob("*.wav"))
     if not wav_files:
@@ -64,7 +64,7 @@ def evaluate_audio_directory(audio_dir: str = "outputs/examples"):
 
 def main():
     parser = argparse.ArgumentParser(description="Inspect and evaluate synthesized audio files")
-    parser.add_argument("--audio-dir", default="outputs/examples", help="Path to folder containing .wav files")
+    parser.add_argument("--audio-dir", default="audio/model_2/finetune_normalised", help="Path to folder containing .wav files")
     args = parser.parse_args()
     evaluate_audio_directory(args.audio_dir)
 

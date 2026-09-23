@@ -24,8 +24,8 @@ fig.suptitle(
 )
 
 for idx, (num, text, title_desc) in enumerate(sentences):
-    f1 = f"outputs/examples/Model1/finetuned_{num}.wav"
-    f2 = f"outputs/examples/Model2/finetuned_{num}.wav"
+    f1 = f"audio/model_1/finetune/finetuned_{num}.wav"
+    f2 = f"audio/model_2/finetune/finetuned_{num}.wav"
 
     w1, sr1 = sf.read(f1)
     w2, sr2 = sf.read(f2)
