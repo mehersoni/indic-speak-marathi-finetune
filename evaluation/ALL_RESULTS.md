@@ -29,7 +29,7 @@ This document compiles all quantitative results, training parameters, acoustic m
 | **Epochs / Total Steps** | N/A | 3 epochs / 450 steps | 3 epochs / 1,314 steps | **2 epochs / 1,708 steps** |
 | **Batch Size & Accumulation** | N/A | batch 2, accum 4 (eff = 8) | batch 2, accum 4 (eff = 8) | **batch 2, accum 4 (eff = 8)** |
 | **Hardware** | N/A | Kaggle T4 GPU (16 GB) | Kaggle T4 GPU (16 GB) | **Kaggle T4 GPU (16 GB)** |
-| **Wall-Clock Runtime** | N/A | 1h 39m 37s | 4h 08m 12s | **5h 25m 14s** |
+| **Wall-Clock Runtime** | N/A | 1h 39m 37s | 4h 08m 12s | **6h 35m 12s (6.58 hrs)** |
 | **Initial Training Loss** | N/A | 3.942 | 4.392 | **4.351** |
 | **Final Training Loss** | N/A | 3.902 | 3.681 | **3.551** |
 | **Final Validation Loss** | N/A | 3.835 | 3.698 | **3.645** |
