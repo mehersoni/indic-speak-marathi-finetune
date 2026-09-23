@@ -83,7 +83,7 @@ indic-speak-marathi-finetune/
 │   ├── ALL_RESULTS.md                # Master empirical results, tables, and paradox analysis
 │   ├── EVALUATION_REPORT.md          # Multi-model relative evaluation report
 │   └── eval_50_summary_metrics.csv   # Aggregated 50-sentence benchmark metrics
-├── figures/                          # 13 publication-grade plots (ASR, MOS, loss, spectrograms)
+├── figures/                          # 10 publication-grade plots (ASR, MOS, loss, spectrograms, waveforms)
 ├── MANUAL_EVALUATION/
 │   ├── INSTRUCTIONS.md               # Subjective listening scoring guidelines and rubric
 │   ├── manifest.csv                  # 10-sentence manual evaluation manifest with user ratings
