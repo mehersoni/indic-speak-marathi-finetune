@@ -23,3 +23,5 @@ outputs/*
 # Archives & Document Deliverables
 *.zip
 *.docx
+marathi_tts_all_models/
+
