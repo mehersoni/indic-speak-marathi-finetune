@@ -14,15 +14,12 @@ __pycache__/
 kaggle.json
 .huggingface/
 
-# Outputs directory
-outputs/*
-
-# Jupyter Notebooks (local execution/Kaggle)
-*.ipynb
+# Outputs and local checkpoints
+outputs/
+marathi_tts_all_models/
 
 # Archives & Document Deliverables
 *.zip
 *.docx
-marathi_tts_all_models/
-MANUAL EVALUATION/
+
 

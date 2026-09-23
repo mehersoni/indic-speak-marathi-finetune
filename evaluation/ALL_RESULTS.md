@@ -228,16 +228,21 @@ indic-speak-marathi-finetune/
 │   ├── ALL_RESULTS.md                # Master empirical results, tables, and paradox analysis
 │   ├── EVALUATION_REPORT.md          # Multi-model relative evaluation report
 │   └── eval_50_summary_metrics.csv   # Aggregated 50-sentence benchmark metrics
-├── figures/                          # 9 publication-grade plots (ASR, MOS, loss, spectrograms)
+├── figures/                          # 13 publication-grade plots (ASR, MOS, loss, spectrograms)
 ├── MANUAL_EVALUATION/
+│   ├── INSTRUCTIONS.md               # Subjective listening scoring guidelines and rubric
 │   ├── manifest.csv                  # 10-sentence manual evaluation manifest with user ratings
 │   ├── mos_summary.csv               # Aggregated MOS scores with standard deviations
-│   └── sentence_01/ ... sentence_10/ # 10 folders with 4 audio files each (BASE, M1, M2, M3)
+│   └── sentence_01/ ... sentence_10/ # 10 comparative test directories (.gitkeep tracked)
 ├── scripts/
+│   ├── compute_manual_evaluation.py  # Aggregator for subjective listening scores
 │   ├── evaluate_asr.py               # 50-sample ASR inference & CER/WER computation tool
+│   ├── generate_all_figures.py       # Publication figure generator
 │   ├── generate_report_doc.py        # Programmatic Word (.docx) report generator
+│   ├── normalize_audio.py            # Audio peak and RMS loudness normalization
 │   ├── prepare_dataset.py            # Dataset download and percentile analysis
-│   └── smoke_test.py                 # 5-stage pre-flight pipeline verification
+│   ├── smoke_test.py                 # 5-stage pre-flight pipeline verification
+│   └── plot_*.py                     # Waveform, loss, and spectrogram plotting scripts
 ├── src/
 │   ├── dataset.py                    # Parquet parsing, filtering, and PyTorch Dataset class
 │   ├── inference.py                  # Audio synthesis with adaptive token cap & peak normalization
@@ -249,6 +254,7 @@ indic-speak-marathi-finetune/
 ├── Model2.ipynb                      # Run 2 training and evaluation notebook
 ├── Model3.ipynb                      # Run 3 full-scale training notebook
 ├── Evaluation.ipynb                  # Standalone ASR & subjective evaluation notebook
-└── requirements.txt                  # Pinned Python dependencies
+├── requirements.txt                  # Pinned Python dependencies
+└── README.md                         # Technical overview, engineering decisions & reproduction guide
 ```
 
