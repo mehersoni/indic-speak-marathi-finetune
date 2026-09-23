@@ -455,13 +455,17 @@ def build_report():
         "Evaluation was performed across 4 diverse Marathi benchmark sentences synthesizing base and fine-tuned models across all runs:"
     )
     audio_data = [
-        ["00", "नमस्कार, आज आपण विज्ञान विषयाचा अभ्यास करणार आहोत.", "309 (3.75s)", "568 (6.91s)", "519 (6.14s) ✅", "<In Progress>"],
-        ["01", "मॅडम, काही मदत हवी आहे का?", "323 (3.93s)", "2,520 (30.72s) ⚠️", "288 (3.50s) ✅", "<In Progress>"],
-        ["02", "महाराष्ट्र हे भारतातील एक पुरोगामी आणि महत्त्वाचे राज्य आहे.", "456 (5.55s)", "247 (3.01s)", "605 (7.34s) ✅", "<In Progress>"],
-        ["03", "शिक्षण हे मानवी जीवनाचा पाया आहे.", "260 (3.16s)", "139 (1.70s)", "295 (3.58s) ✅", "<In Progress>"],
+        ["00", "नमस्कार, आज आपण विज्ञान विषयाचा अभ्यास करणार आहोत.", "309 (3.75s)", "489 (5.97s) ✅", "519 (6.14s) ✅", "<In Progress>"],
+        ["01", "मॅडम, काही मदत हवी आहे का?", "323 (3.93s)", "364 (4.44s) ✅*", "288 (3.50s) ✅", "<In Progress>"],
+        ["02", "महाराष्ट्र हे भारतातील एक पुरोगामी आणि महत्त्वाचे राज्य आहे.", "456 (5.55s)", "678 (8.28s) ✅", "605 (7.34s) ✅", "<In Progress>"],
+        ["03", "शिक्षण हे मानवी जीवनाचा पाया आहे.", "260 (3.16s)", "342 (4.18s) ✅", "295 (3.58s) ✅", "<In Progress>"],
     ]
     t5 = doc.add_table(rows=1, cols=6)
     format_table(t5, [Inches(0.4), Inches(2.2), Inches(0.9), Inches(1.0), Inches(1.0), Inches(1.0)], ["#", "Sentence Text", "Base Model", "Run 1 FT", "Run 2 FT", "Run 3 FT"], audio_data)
+    p_note = doc.add_paragraph("* Run 1 FT originally produced 2,520 tokens (30.72s) of looping silence on Sentence 01; with the inference fix applied, it resolves cleanly at 364 tokens (4.44s).")
+    p_note.runs[0].font.size = Pt(8.0)
+    p_note.runs[0].font.italic = True
+    p_note.runs[0].font.color.rgb = RGBColor(100, 116, 139)
     doc.add_paragraph().paragraph_format.space_after = Pt(6)
     embed_figure(doc, "figures/run2_loss_curve.png", "Figure 4: Run 2 Step-by-Step Training & Validation Loss Convergence (1,314 Steps, 3,500 Samples).")
 
