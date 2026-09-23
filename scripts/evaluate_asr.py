@@ -71,11 +71,15 @@ def evaluate_audio_directory(audio_dir: str = "audio/model_2/finetune_normalised
         
         if idx and idx in DEFAULT_GROUND_TRUTHS:
             ref_text = DEFAULT_GROUND_TRUTHS[idx]
-            # Perfect phonetic coverage verified; compute Levenshtein on aligned transcription
-            cer, wer = compute_cer_wer(ref_text, ref_text)
-            print(f"{wf.name:<30} | {duration:>6.2f}s  | {cer*100:>5.1f}%  | {wer*100:>5.1f}%  | 100% Intelligible")
+            # CER/WER requires an actual independent ASR model transcription (e.g. IndicWav2Vec / Whisper-large)
+            print(f"{wf.name:<30} | {duration:>6.2f}s  | {'N/A*':>6}  | {'N/A*':>6}  | Verified readable ({sr} Hz)")
         else:
-            print(f"{wf.name:<30} | {duration:>6.2f}s  | {'N/A':>6}  | {'N/A':>6}  | Readable ({sr} Hz)")
+            print(f"{wf.name:<30} | {duration:>6.2f}s  | {'N/A':>6}  | {'N/A':>6}  | Verified readable ({sr} Hz)")
+
+    print("-" * 75)
+    print("* Note: CER/WER calculation requires transcribing synthesized audio with an independent")
+    print("  Marathi ASR model (e.g., ai4bharat/indicwav2vec-hindi-marathi or whisper-large-v3).")
+    print("  Four demo sentences provide human-verified phonetic completeness, not a statistical ASR benchmark.")
 
 
 def main():
