@@ -1,8 +1,3 @@
-<!--
-Human listening evaluation guidelines and scoring rubrics for Marathi TTS.
-Details the 1-5 scale for Naturalness, Clarity, and Artifacts across Base, R1, R2, and R3.
--->
-
 # Manual Subjective Evaluation Guide (Mean Opinion Score - MOS)
 
 This folder contains a 10-sentence comparative listening set designed to measure subjective human quality across all four model variants:

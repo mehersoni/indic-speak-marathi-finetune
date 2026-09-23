@@ -1,9 +1,3 @@
-<!--
-Comprehensive empirical evaluation report for Marathi TTS fine-tuning.
-Documents methodology, 50-sentence held-out benchmark results, ASR metrics,
-pacing ratios, and acoustic energy comparisons across all 4 model variants.
--->
-
 # Marathi Text-to-Speech: Multi-Model Relative Evaluation Report
 
 This report presents empirical benchmarking results across four model variants:

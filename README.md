@@ -1,34 +1,25 @@
-<!--
-Production documentation for indic-speak-marathi fine-tuning repository.
-Covers model architecture, dataset preparation, LoRA iterations, engineering decisions,
-challenges, empirical benchmarks, and instructions for reproduction.
--->
+# Indic-Speak Marathi TTS Fine-Tuning
 
-# Fine-Tuning Indic-Speak for Marathi Text-to-Speech
+LoRA fine-tuning and evaluation pipeline for Marathi speech generation on [bodhan-ai/indic-speak](https://huggingface.co/bodhan-ai/indic-speak) (3.3B LLaMA-3.2 backbone).
 
-**Author**: Meher Soni  
-**Role**: AI Research Engineer Take-Home Assignment  
-**Lab**: AI4Bharat, IIT Madras (Prof. Mitesh Khapra)  
-**Task**: Fine-tuning Bodhan AI's `bodhan-ai/indic-speak` on Marathi TTS  
-**Repository**: [https://github.com/mehersoni/indic-speak-marathi-finetune](https://github.com/mehersoni/indic-speak-marathi-finetune)  
-**External Artifacts (Google Drive)**: [Link to Checkpoints, Full Audio & Reports](https://drive.google.com/) *(Fill in shared Drive link)*  
+[Artifacts & Model Weights (Google Drive)](https://drive.google.com/)
 
 ---
 
-## 1. Executive Summary
+## 1. Overview
 
-This repository implements a modular, reproducible Parameter-Efficient Fine-Tuning (PEFT) pipeline using Low-Rank Adaptation (LoRA) on `bodhan-ai/indic-speak` (a 3.3B parameter autoregressive speech model based on LLaMA-3.2). 
+This repository implements a modular parameter-efficient fine-tuning (PEFT) pipeline using Low-Rank Adaptation (LoRA) on `bodhan-ai/indic-speak`. 
 
-Fine-tuning progressed through three iterative runs:
+Training progressed across three iterations:
 1. **Run 1 (Model 1 — Baseline)**: 1,200 samples, attention-only LoRA (`q, k, v, o`), lr = $1 \times 10^{-4}$, 3 epochs.
 2. **Run 2 (Model 2 — Production Architecture)**: 3,500 samples, Attention + SwiGLU MLP LoRA (`q, k, v, o, gate, up, down`), lr = $3 \times 10^{-5}$, 3 epochs.
 3. **Run 3 (Model 3 — Full Scale)**: 6,829 samples (100% single speaker `Anagha`), Attention + SwiGLU MLP LoRA, lr = $3 \times 10^{-5}$, 2 epochs.
 
-Empirical evaluation on a 50-sentence held-out Marathi benchmark decoded with an independent Indic ASR model (`sumedh/wav2vec2-large-xlsr-marathi`), combined with a 10-sentence manual listening Mean Opinion Score (MOS) study, confirms that **Model 3 achieves state-of-the-art naturalness (MOS 4.80 / 5.00)**, resolves vocoder buzz, and maintains stable pacing without token repetition loops.
+Evaluation was performed using a 50-sentence held-out Marathi benchmark transcribed with an independent Indic ASR model (`sumedh/wav2vec2-large-xlsr-marathi`), alongside a 10-sentence manual listening Mean Opinion Score (MOS) study.
 
 ---
 
-## 2. Multi-Run Empirical Results
+## 2. Empirical Results
 
 ### 2.1 50-Sentence Objective ASR Benchmark (`wav2vec2-large-xlsr-marathi`)
 
@@ -51,31 +42,31 @@ Evaluated across 10 held-out sentences (40 audio files total) on a 1–5 scale:
 
 ---
 
-## 3. Engineering Decisions & Rationale
+## 3. Design Decisions & Rationale
 
 1. **Why LoRA instead of Full Fine-Tuning?**  
-   `indic-speak` contains 3.33B parameters. Full fine-tuning in fp16 requires >28 GB VRAM just for weights and optimizer states. LoRA with rank $r=16, \alpha=32$ trains only 24.3M parameters (0.731%), enabling training on an accessible 16 GB NVIDIA T4 GPU while fully preserving multilingual base capabilities.
+   `indic-speak` contains 3.33B parameters. Full fine-tuning in fp16 requires >28 GB VRAM just for model weights and optimizer states. LoRA with rank $r=16, \alpha=32$ trains 24.3M parameters (0.731%), enabling stable training on a 16 GB NVIDIA T4 GPU while preserving the base model's multilingual representations.
 2. **Why Target Both Attention and SwiGLU MLP Layers?**  
-   In Run 1, attention-only LoRA (`q, k, v, o`) stalled at loss ~3.902 and suffered dropped syllables (Clarity MOS 2.25). Autoregressive speech generation is dominated by classifying into a massive 28,672-token audio codebook. The feedforward network (`gate_proj`, `up_proj`, `down_proj`) stores acoustic feature mappings and acoustic code representations. Expanding LoRA to MLP layers in Runs 2 & 3 dropped validation loss to 3.645 and boosted clarity to 4.20 / 5.00.
-3. **Why Filter to a Single Speaker (`speaker: Anagha`)?**  
-   The raw Marathi dataset contained 9 speakers with extreme gender imbalance (92% female, 8% male). Conditioning across mixed speakers caused pitch instability and vocal identity shifts. Restricting training to Anagha (4,511 to 6,829 samples) produced consistent pitch contours and natural vocal timbre.
+   In Run 1, attention-only LoRA (`q, k, v, o`) plateaued at loss ~3.902 and dropped syllables on compound words (Clarity MOS 2.25). Autoregressive speech generation predicts tokens from a 28,672-way audio codebook. The feedforward network (`gate_proj`, `up_proj`, `down_proj`) stores acoustic feature mappings and code representations. Expanding LoRA to MLP layers in Runs 2 & 3 lowered validation loss to 3.645 and increased clarity to 4.20 / 5.00.
+3. **Why Filter to Single Speaker (`speaker: Anagha`)?**  
+   The raw Marathi dataset contained 9 speakers with extreme gender imbalance (92% female, 8% male). Training across mixed speakers caused pitch instability and inconsistent vocal identity. Restricting training to Anagha (6,829 samples) produced consistent pitch contours and natural vocal timbre.
 4. **Why Adaptive Token Caps ($\min(2520, \max(280, L \times 14))$)?**  
-   Under naive fixed sequence length caps (e.g. 1,500 tokens), short sentences entered low-entropy repetition loops and generated continuous noise until hitting the hard cap. Empirical speech rate analysis revealed ~10.4 audio tokens per character. Capping generation dynamically at $L \times 14$ with repetition penalty 1.1 allowed sentences to stop naturally at `<|end_of_speech|>`.
+   Under a fixed sequence length ceiling (e.g. 1,500 tokens), short prompts entered low-entropy repetition loops and generated trailing audio noise until hitting the hard cap. Empirical speech rate analysis showed ~10.4 audio tokens per text character. Capping generation dynamically at $L \times 14$ with repetition penalty 1.1 allowed the model to emit `<|end_of_speech|>` naturally.
 
 ---
 
-## 4. Challenges Faced & Diagnostic Problem-Solving
+## 4. Diagnostics & Problem-Solving
 
-1. **The "Base Model Paradox" & ASR Error Floors**:  
-   The untuned Base Model scored lower CER (16.65%) than fine-tuned models on Wav2Vec2 CTC ASR, but human listeners rated it completely robotic (Naturalness MOS 1.00). CTC ASR favors unnatural, staccato pauses where phonemes are cleanly separated. In contrast, Model 3 generates natural co-articulation, pitch inflections, and conversational rhythm (MOS 4.80). Furthermore, the Wav2Vec2 model has an inherent error floor of ~18–24% on native human Marathi speech due to Devanagari orthographic ambiguities (anusvaras, short/long matras). Model 3's CER of 40.27% represents authentic conversational cadence rather than phonemic degradation.
-2. **Kaggle Environment Dependency Conflicts (`torchao`)**:  
-   Pre-installed `torchao 0.10.0` conflicted with PEFT linear layer hooks during adapter initialization. We implemented an automatic uninstallation pre-flight check in `scripts/smoke_test.py` and the notebooks.
-3. **VRAM Memory Fragmentation on 16GB T4**:  
-   Variable-length speech sequences caused CUDA out-of-memory errors due to memory fragmentation. Setting `PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True"`, `group_by_length=True`, and gradient accumulation steps to 8 allowed stable training with peak VRAM utilization of ~13.8 GiB.
-4. **Vocos Checkpoint Architecture Mismatch**:  
-   Attempting to use generic Hugging Face `vocos` checkpoints caused latent dimension mismatches. We bundled the exact custom 10-layer ConvNeXt-1D vocoder into `src/vocos/` to guarantee standalone, deterministic synthesis.
-5. **Ephemeral Cloud Checkpointing**:  
-   A preemption during an early Run 1 attempt wiped un-synced adapter weights in `/kaggle/working/`. For Runs 2 and 3, structured checkpoint export and persistent dataset caching were enforced.
+1. **The Base Model Paradox & ASR Error Floors**:  
+   The untuned Base Model achieved lower CER (16.65%) than fine-tuned models on Wav2Vec2 CTC ASR, yet human listeners rated it robotic (Naturalness MOS 1.00). CTC ASR favors staccato pauses where individual phonemes are separated by artificial silence. Model 3 generates natural co-articulation, pitch inflections, and conversational cadence (MOS 4.80). Furthermore, the Wav2Vec2 model has an inherent error floor of ~18–24% on native human Marathi speech due to Devanagari orthographic ambiguities (anusvaras, short/long matras). Model 3's CER of 40.27% reflects conversational articulation rather than phonemic breakdown.
+2. **Kaggle Dependency Conflict (`torchao`)**:  
+   Pre-installed `torchao 0.10.0` interfered with PEFT linear layer hooks during adapter setup. We added an automatic uninstallation check in `scripts/smoke_test.py` and the notebooks.
+3. **VRAM Memory Management on 16GB T4**:  
+   Variable-length speech sequences caused CUDA memory fragmentation. Setting `PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True"`, `group_by_length=True`, and gradient accumulation to 8 allowed stable training with peak VRAM utilization of ~13.8 GiB.
+4. **Vocos Checkpoint Handling**:  
+   Generic Hugging Face `vocos` checkpoints caused dimension mismatches with the model's intermediate codebooks. We bundled the exact 10-layer ConvNeXt-1D vocoder into `src/vocos/` to ensure self-contained, deterministic synthesis.
+5. **Checkpointing in Ephemeral Environments**:  
+   A preemption during an initial Run 1 attempt lost un-synced adapter weights in `/kaggle/working/`. For Runs 2 and 3, structured checkpoint export and persistent dataset caching were implemented.
 
 ---
 
@@ -124,28 +115,26 @@ indic-speak-marathi-finetune/
 
 ---
 
-## 6. How to Reproduce
+## 6. How to Run
 
-### 1. Environment Setup
+### Setup
 ```bash
 git clone https://github.com/mehersoni/indic-speak-marathi-finetune.git
 cd indic-speak-marathi-finetune
 pip install -r requirements.txt
 ```
 
-### 2. Run Pre-flight Smoke Test
+### Smoke Test
 ```bash
 python scripts/smoke_test.py
 ```
 
-### 3. Training
-Run training using the configuration YAML:
+### Training
 ```bash
 python -m src.train --config configs/marathi_lora.yaml
 ```
 
-### 4. Inference & Synthesis
-Generate speech for a custom Marathi prompt:
+### Inference
 ```bash
 python -m src.inference \
     --adapter-path marathi_tts_all_models/model_3/final_adapter \
@@ -154,8 +143,7 @@ python -m src.inference \
     --output-path output.wav
 ```
 
-### 5. Evaluation
-Transcribe and evaluate synthesized audio against references:
+### Evaluation
 ```bash
 python scripts/evaluate_asr.py --audio-dir audio/model_3/finetune_normalised
 ```

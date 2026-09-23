@@ -1,9 +1,3 @@
-<!--
-Consolidated experimental and empirical results for Marathi TTS fine-tuning.
-Contains complete multi-run training metrics, canonical 4-sentence audio profiling,
-and the 50-sentence held-out Indic ASR benchmark for direct inclusion in reports.
--->
-
 # Marathi TTS Fine-Tuning: Master Results & Empirical Benchmarks
 
 This document compiles all quantitative results, training parameters, acoustic measurements, and ASR benchmark evaluations across all four model configurations:
@@ -202,7 +196,7 @@ A manual comparative listening test was conducted on 10 held-out Marathi sentenc
    - **Model 1 Truncation**: On Sentence 09 (*"दसरा मेळाव्यातला प्रकार पूर्वनियोजित -जोशी"*), Model 1 omitted the proper noun *"जोशी"*.
    - **Model 3 Numeral Edge Case**: On Sentence 08 containing English year digits (*"२०११"*), Model 3 prematurely stopped after pronouncing the numeral, highlighting the importance of text front-end normalization converting numerals into Devanagari words before generation.
 4. **Overall Assessment**:
-   - Model 3 is unambiguously the superior model overall (**Composite MOS 4.45**), combining high human naturalness with clear pronunciation and minimal vocoder buzz.
+   - Model 3 achieves the highest overall rating (**Composite MOS 4.45**), combining high human naturalness with clear pronunciation and minimal vocoder buzz.
 
 ---
 

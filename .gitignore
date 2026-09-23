@@ -22,4 +22,8 @@ marathi_tts_all_models/
 *.zip
 *.docx
 
+# Agent instructions & workspace metadata
+AGENTS.md
+.gemini/
+
 
