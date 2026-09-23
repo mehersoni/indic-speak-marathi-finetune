@@ -48,6 +48,8 @@ cells = [
             "elif os.path.exists(repo_dir):\n",
             "    %cd {repo_dir}\n",
             "\n",
+            "# Uninstall conflicting pre-installed torchao in Kaggle environment\n",
+            "!pip uninstall -y torchao\n",
             "# Install required dependencies\n",
             "!pip install -q soundfile transformers scipy matplotlib jiwer tabulate pandas peft snac huggingface_hub\n",
             "\n",
