@@ -118,3 +118,34 @@ Model 2 (3.5k, Attn+MLP) 50         43.41%          37.98%          84.66%      
 Model 3 (6.8k, Full)     50         40.27%          37.98%          83.34%         7.42s       1.13x    +1.2 dB
 ========================================================================================================
 ```
+
+---
+
+## 6. Human Subjective Listening Evaluation (Mean Opinion Score - MOS)
+
+A manual comparative listening test was conducted on 10 held-out Marathi sentences from the benchmark set across all four models (40 audio files rated on a 1–5 scale).
+
+### 6.1 Aggregated MOS Results Table
+
+| Model | Naturalness MOS (1-5) | Clarity MOS (1-5) | Acoustic Cleanliness MOS (1-5) | Composite MOS |
+| :--- | :---: | :---: | :---: | :---: |
+| **Base Model (Untuned)** | 1.00 (±0.00) | **4.95** (±0.15) | **4.90** (±0.30) | 3.62 |
+| **Model 1 (1.2k, Attn)** | 2.85 (±0.63) | 2.25 (±0.93) | 3.00 (±0.77) | 2.70 |
+| **Model 2 (3.5k, Attn+MLP)** | 3.65 (±0.63) | 2.90 (±1.24) | 3.35 (±0.84) | 3.30 |
+| **Model 3 (6.8k, Full - Final)** | **4.80** (±0.33) | **4.20** (±0.46) | **4.35** (±0.32) | **4.45** |
+
+### 6.2 Key Subjective Takeaways & Qualitative Error Analysis
+1. **Dramatic Leap in Naturalness**:
+   - The Base Model scored **1.00 / 5.00** on naturalness due to flat, robotic, mechanical delivery with unnatural pitch transitions.
+   - **Model 3 achieved 4.80 / 5.00**, delivering authentic Marathi prosody, expressive cadence, and realistic conversational breathing.
+2. **Clarity Recovery**:
+   - Model 1 suffered from dropped syllables and muffled conjuncts (**Clarity MOS 2.25**; e.g. dropped the word "जोशी" entirely on Sentence 09).
+   - Model 2 improved to **2.90**, but struggled on complex compound sentences.
+   - **Model 3 restored clarity to 4.20 / 5.00**, producing crisp Devanagari consonants across 9 out of 10 test prompts.
+3. **Specific Qualitative Observations Flagged**:
+   - **Base Model Hallucination**: On Sentence 02 (*"ठीक आहे मग, मला मग नेहमीची अंडीच दे."*), the Base Model emitted a trailing hallucinated sound (*"re"* pronounced extra at the end).
+   - **Model 1 Truncation**: On Sentence 09 (*"दसरा मेळाव्यातला प्रकार पूर्वनियोजित -जोशी"*), Model 1 omitted the proper noun *"जोशी"*.
+   - **Model 3 Numeral Edge Case**: On Sentence 08 containing English year digits (*"२०११"*), Model 3 prematurely stopped after pronouncing the numeral, highlighting the importance of text front-end normalization converting numerals into Devanagari words before generation.
+4. **Overall Assessment**:
+   - Model 3 is unambiguously the superior model overall (**Composite MOS 4.45**), combining high human naturalness with clear pronunciation and minimal vocoder buzz.
+

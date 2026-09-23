@@ -49,7 +49,28 @@ This report presents empirical benchmarking results across four model variants:
 
 ---
 
-## 4. Technical Analysis
+## 4. Human Subjective Evaluation (Mean Opinion Score - MOS)
+
+A manual listening test was conducted on 10 held-out Marathi sentences across all 4 models (40 audio files rated on a 1–5 scale).
+
+| Model | Naturalness MOS (1-5) | Clarity MOS (1-5) | Acoustic Cleanliness MOS (1-5) | Composite MOS |
+| :--- | :---: | :---: | :---: | :---: |
+| **Base Model (Untuned)** | 1.00 (±0.00) | **4.95** (±0.15) | **4.90** (±0.30) | 3.62 |
+| **Model 1 (1.2k, Attn)** | 2.85 (±0.63) | 2.25 (±0.93) | 3.00 (±0.77) | 2.70 |
+| **Model 2 (3.5k, Attn+MLP)** | 3.65 (±0.63) | 2.90 (±1.24) | 3.35 (±0.84) | 3.30 |
+| **Model 3 (6.8k, Full - Final)** | **4.80** (±0.33) | **4.20** (±0.46) | **4.35** (±0.32) | **4.45** |
+
+![Subjective MOS Comparison](../figures/mos_subjective_comparison.png)
+
+### Key Subjective Findings:
+- **Naturalness Breakthrough**: Base Model scored 1.00 due to robotic prosody. Model 3 achieved **4.80 / 5.00**, delivering authentic human Marathi cadence and natural vocal inflections.
+- **Clarity Recovery**: While Model 1 dropped syllables (e.g. dropped 'joshi' on Sentence 09), Model 3 restored pronunciation clarity to **4.20 / 5.00**.
+- **Acoustic Cleanliness**: Model 3 achieved **4.35 / 5.00**, producing clean studio-grade audio with minimal vocoder phase distortion.
+
+
+---
+
+## 5. Technical Analysis
 
 ### A. Convergence Progression (Model 1 $\to$ Model 2 $\to$ Model 3)
 Fine-tuning demonstrates clear, monotonic gains across all three iterations:
@@ -64,10 +85,11 @@ The Base Model achieved lower ASR error rates (16.65% CER) than the fine-tuned m
 
 ---
 
-## 5. Artifacts and Reproducibility
+## 6. Artifacts and Reproducibility
 
 - Benchmark configuration: `configs/eval_50_sentences.json`
 - Metrics summary data: `evaluation/eval_50_summary_metrics.csv`
-- Benchmark comparison plot: `figures/eval_50_benchmark_comparison.png`
+- Subjective MOS scores: `MANUAL_EVALUATION/mos_summary.csv` and `MANUAL_EVALUATION/manifest.csv`
+- Benchmark comparison plots: `figures/eval_50_benchmark_comparison.png` and `figures/mos_subjective_comparison.png`
 - Standalone Kaggle evaluation notebook: `Evaluation.ipynb`
-- Notebook generator script: `scripts/create_evaluation_notebook.py`
+
