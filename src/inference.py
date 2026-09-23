@@ -94,6 +94,9 @@ def generate_speech(
             wav = snac_model.decoder(z_q)
 
         waveform = wav[0, 0].clamp(-1, 1).float().cpu().numpy()
+        peak = np.max(np.abs(waveform))
+        if peak > 1e-4:
+            waveform = (waveform / peak) * 0.90
         return waveform, num_audio_tokens, len(prompt_ids)
 
 
