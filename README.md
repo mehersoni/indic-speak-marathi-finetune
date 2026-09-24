@@ -2,7 +2,7 @@
 
 LoRA fine-tuning and evaluation pipeline for Marathi speech generation on [bodhan-ai/indic-speak](https://huggingface.co/bodhan-ai/indic-speak) (3.3B LLaMA-3.2 backbone).
 
-[Artifacts & Model Weights (Google Drive)](https://drive.google.com/)
+[Artifacts & Model Weights (Google Drive)](https://drive.google.com/drive/folders/1IhPvK4oJqevD_innRCj3RxX5M06S0ApW?usp=sharing)
 
 ---
 
